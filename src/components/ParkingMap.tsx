@@ -40,22 +40,15 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
   const bikeSlots    = allSlots.filter(s => s.tipo === "bicicleta");
 
   // ─── Componentes internos ─────────────────────────────────────────────────
-  const FilterChip = ({
-    type,
-    label,
-    icon: Icon,
-  }: {
-    type: SlotType | "todos";
-    label: string;
-    icon: React.ElementType;
-  }) => (
+  const FilterChip = ({ type, label, icon: Icon }: { type: SlotType | "todos"; label: string; icon: React.ElementType }) => (
     <button
       onClick={() => setActiveFilter(type)}
-      className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
+      className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300"
+      style={
         activeFilter === type
-          ? "bg-slate-800 text-white shadow-lg scale-105"
-          : "bg-white text-gray-500 hover:bg-gray-50 border border-gray-100"
-      }`}
+          ? { background: '#1E3A5F', color: '#fff', boxShadow: '0 4px 14px rgba(30,58,95,0.25)' }
+          : { background: '#fff', color: '#94a3b8', border: '1.5px solid #e2e8f0' }
+      }
     >
       <Icon size={16} />
       {label}
@@ -70,31 +63,22 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
       <motion.div
         layout
         initial={{ opacity: 0, scale: 0.9 }}
-        animate={{
-          opacity: isFiltered ? 0.15 : 1,
-          scale: 1,
-          transition: { duration: 0.4 },
-        }}
+        animate={{ opacity: isFiltered ? 0.15 : 1, scale: 1, transition: { duration: 0.4 } }}
         whileTap={isFree ? { scale: 0.93 } : {}}
         onClick={() => isFree && setSelectedSlot(slot)}
         className={`relative cursor-pointer rounded-lg border-2 border-white shadow-sm flex flex-col items-center justify-center transition-colors duration-500
-          ${isFree ? "bg-[#A3E4D7]" : "bg-red-200"}
           ${slot.tipo === "carro" ? "h-14 w-10" : "h-8 w-7"}
         `}
+        style={{ background: isFree ? '#6AB023' : '#ef4444' }}
         title={`Cajón ${slot.slot} — ${slot.status}${slot.distancia_cm ? ` (${slot.distancia_cm} cm)` : ""}`}
       >
-        <span className="text-[9px] font-bold text-gray-600 opacity-60">{slot.slot}</span>
+        <span className="text-[8px] font-bold text-white opacity-80">{slot.slot}</span>
         {!isFree && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute inset-0 flex items-center justify-center bg-black/5 rounded-lg"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg"
           >
-            {slot.tipo === "carro" ? (
-              <Car size={12} className="text-gray-600/40" />
-            ) : (
-              <Bike size={10} className="text-gray-600/40" />
-            )}
+            {slot.tipo === "carro" ? <Car size={12} className="text-white/60" /> : <Bike size={10} className="text-white/60" />}
           </motion.div>
         )}
       </motion.div>
@@ -145,16 +129,15 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
           embedded ? "w-full" : "max-w-4xl mx-auto"
         } bg-white rounded-[32px] p-6 shadow-xl border border-gray-100 overflow-hidden`}
       >
-        {/* Cabecera del mapa con totales */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex gap-4">
             <div className="text-center">
-              <p className="text-2xl font-black text-[#70C1B3]">{totalLibre}</p>
+              <p className="text-2xl font-black" style={{ color: '#6AB023' }}>{totalLibre}</p>
               <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Libres</p>
             </div>
             <div className="w-px bg-gray-100" />
             <div className="text-center">
-              <p className="text-2xl font-black text-red-400">{totalOcupado}</p>
+              <p className="text-2xl font-black text-red-500">{totalOcupado}</p>
               <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Ocupados</p>
             </div>
           </div>
@@ -229,11 +212,11 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
         <div className="mt-8 flex justify-between items-center">
           <div className="flex gap-4 items-center">
             <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#A3E4D7]" />
+              <div className="w-2.5 h-2.5 rounded-full" style={{ background: '#6AB023' }} />
               <span className="text-[9px] text-gray-400 font-medium">Libre</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-red-200" />
+              <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
               <span className="text-[9px] text-gray-400 font-medium">Ocupado</span>
             </div>
           </div>
@@ -310,7 +293,10 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
                 </div>
               </div>
 
-              <button className="w-full bg-[#70C1B3] hover:bg-[#5aada0] text-white font-bold py-5 rounded-[24px] shadow-lg shadow-teal-300/20 transition-all active:scale-[0.98]">
+              <button
+                className="w-full text-white font-bold py-5 rounded-[24px] shadow-lg transition-all active:scale-[0.98]"
+                style={{ background: 'linear-gradient(135deg, #6AB023, #00AEEF)', boxShadow: '0 8px 24px rgba(0,174,239,0.3)' }}
+              >
                 Reservar Cupo
               </button>
             </motion.div>
