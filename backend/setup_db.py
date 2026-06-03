@@ -9,9 +9,12 @@ load_dotenv()
 def ensure_db_exists():
     """Crea la base de datos 'smartparku' si no existe."""
     db_url = os.getenv("DATABASE_URL")
-    # Formato: postgresql+psycopg://user:pass@host:port/dbname
-    base_url   = db_url.rsplit('/', 1)[0] + '/postgres'
-    target_db  = db_url.rsplit('/', 1)[1]
+    # Formato en .env: postgresql+psycopg://user:pass@host:port/dbname
+    # psycopg.connect necesita: postgresql://user:pass@host:port/dbname
+    # Eliminamos el driver hint (+psycopg) para la conexión directa con psycopg
+    clean_url  = db_url.replace("postgresql+psycopg://", "postgresql://")
+    base_url   = clean_url.rsplit('/', 1)[0] + '/postgres'
+    target_db  = clean_url.rsplit('/', 1)[1]
 
     try:
         conn = psycopg.connect(base_url, autocommit=True)

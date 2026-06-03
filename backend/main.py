@@ -104,10 +104,10 @@ def get_parking_slots(db: Session = Depends(get_db)):
     """
     espacios_db = db.query(models.EspacioParqueo).order_by(models.EspacioParqueo.id).all()
 
+    resultado: list[schemas.EspacioParqueoResponse] = []
+
     # Si la DB no tiene datos todavía, usar la definición canónica en memoria
     if not espacios_db:
-        from datetime import datetime
-        resultado = []
         for i, s in enumerate(SLOTS_DEFINICION, start=1):
             estado_live = parking_state["espacios"].get(s["slot_id"], {})
             resultado.append(schemas.EspacioParqueoResponse(
@@ -120,15 +120,21 @@ def get_parking_slots(db: Session = Depends(get_db)):
                 updated_at=estado_live.get("updated_at"),
             ))
     else:
-        resultado = []
         for espacio in espacios_db:
-            # Combinar con estado en tiempo real del MQTT
+            # Leer estado en tiempo real del MQTT sin mutar el objeto ORM
             estado_live = parking_state["espacios"].get(espacio.slot_id, {})
-            espacio.status       = estado_live.get("status", espacio.status)
-            espacio.distancia_cm = estado_live.get("distancia_cm", espacio.distancia_cm)
-            resultado.append(espacio)
+            resultado.append(schemas.EspacioParqueoResponse(
+                id=espacio.id,
+                slot_id=espacio.slot_id,
+                label=espacio.label,
+                tipo=espacio.tipo,
+                # Priorizar estado en vivo; si no hay, usar el de la DB
+                status=estado_live.get("status", espacio.status),
+                distancia_cm=estado_live.get("distancia_cm", espacio.distancia_cm),
+                updated_at=estado_live.get("updated_at", espacio.updated_at),
+            ))
 
-    total_libre   = sum(1 for e in resultado if (e.status if isinstance(e, schemas.EspacioParqueoResponse) else e.status) == "libre")
+    total_libre   = sum(1 for e in resultado if e.status == "libre")
     total_ocupado = len(resultado) - total_libre
 
     return schemas.ParkingEstadoResponse(
