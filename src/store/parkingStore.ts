@@ -59,26 +59,6 @@ interface ParkingState {
   controlServo: (accion: 'abrir' | 'cerrar') => Promise<{ ok: boolean; error?: string }>;
 }
 
-// ─── Slots predefinidos UCC Pasto (fallback cuando el backend no está activo) ─
-// Sincronizado con mqtt_client.SLOTS_DEFINICION del backend
-const SLOTS_FALLBACK: Record<string, ParkingSlot> = Object.fromEntries(
-  [
-    { slot_id: 'slot_01', label: 'C-01', tipo: 'carro'     as VehicleType },
-    { slot_id: 'slot_02', label: 'C-02', tipo: 'carro'     as VehicleType },
-    { slot_id: 'slot_03', label: 'C-03', tipo: 'carro'     as VehicleType },
-    { slot_id: 'slot_04', label: 'C-04', tipo: 'carro'     as VehicleType },
-    { slot_id: 'slot_05', label: 'M-01', tipo: 'moto'      as VehicleType },
-    { slot_id: 'slot_06', label: 'M-02', tipo: 'moto'      as VehicleType },
-    { slot_id: 'slot_07', label: 'M-03', tipo: 'moto'      as VehicleType },
-    { slot_id: 'slot_08', label: 'B-01', tipo: 'bicicleta' as VehicleType },
-    { slot_id: 'slot_09', label: 'B-02', tipo: 'bicicleta' as VehicleType },
-    { slot_id: 'slot_10', label: 'V-01', tipo: 'vip'       as VehicleType },
-  ].map(s => [
-    s.slot_id,
-    { slot: s.slot_id, label: s.label, status: 'libre' as SlotStatus, tipo: s.tipo, distancia_cm: null, updated_at: null },
-  ])
-);
-
 // ─── WebSocket singleton ──────────────────────────────────────────────────────
 let ws:             WebSocket | null = null;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
