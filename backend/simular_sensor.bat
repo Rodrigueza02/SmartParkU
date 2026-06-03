@@ -4,7 +4,7 @@ REM Ejecutar en DOS/CMD con Mosquitto instalado en C:\Program Files\mosquitto\
 
 SET BROKER=7de2fa1d05f84c5c8f2fcacca06d98da.s1.eu.hivemq.cloud
 SET USUARIO=Juliana
-SET PASSWORD=TU_CONTRASEÑA_AQUI
+SET PASSWORD=1138524566Juli*
 
 echo === SmartParkU - Simulador de sensor ===
 echo.

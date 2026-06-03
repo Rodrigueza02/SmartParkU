@@ -23,7 +23,7 @@ logger = logging.getLogger("smartparku.mqtt")
 BROKER   = os.getenv("MQTT_BROKER",   "7de2fa1d05f84c5c8f2fcacca06d98da.s1.eu.hivemq.cloud")
 PORT     = int(os.getenv("MQTT_PORT", "8883"))
 USERNAME = os.getenv("MQTT_USERNAME", "Juliana")
-PASSWORD = os.getenv("MQTT_PASSWORD", "")
+PASSWORD = os.getenv("MQTT_PASSWORD", "1138524566Juli*")
 
 # ── Estado compartido en memoria ───────────────────────────────────────────────
 # Actualizado por MQTT, leido por WebSocket y endpoints REST
