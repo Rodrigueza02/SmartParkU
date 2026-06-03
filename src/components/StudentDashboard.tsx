@@ -23,14 +23,14 @@ interface ParkingSpot {
 
 const INITIAL_SPOTS: ParkingSpot[] = [
   { id: 'slot_01', status: 'available',  type: 'car',    label: 'C-01' },
-  { id: 'slot_02', status: 'occupied',   type: 'car',    label: 'C-02' },
-  { id: 'slot_03', status: 'vip',        type: 'car',    label: 'C-03' },
+  { id: 'slot_02', status: 'available',  type: 'car',    label: 'C-02' },
+  { id: 'slot_03', status: 'available',  type: 'car',    label: 'C-03' },
   { id: 'slot_04', status: 'available',  type: 'car',    label: 'C-04' },
   { id: 'slot_05', status: 'available',  type: 'moto',   label: 'M-01' },
-  { id: 'slot_06', status: 'occupied',   type: 'moto',   label: 'M-02' },
+  { id: 'slot_06', status: 'available',  type: 'moto',   label: 'M-02' },
   { id: 'slot_07', status: 'available',  type: 'moto',   label: 'M-03' },
   { id: 'slot_08', status: 'available',  type: 'scooter',label: 'B-01' },
-  { id: 'slot_09', status: 'occupied',   type: 'scooter',label: 'B-02' },
+  { id: 'slot_09', status: 'available',  type: 'scooter',label: 'B-02' },
   { id: 'slot_10', status: 'vip',        type: 'car',    label: 'V-01' },
 ];
 
