@@ -62,8 +62,9 @@ const SLOTS_FALLBACK: Record<string, ParkingSlot> = Object.fromEntries(
 // ─── WebSocket singleton ──────────────────────────────────────────────────────
 let ws:             WebSocket | null = null;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-let reconnectDelay  = 3000;   // Empieza en 3s, sube con backoff hasta 30s
+let reconnectDelay  = 3000;
 const MAX_DELAY     = 30_000;
+let intentionalClose = false;   // bandera para no reconectar cuando es un cierre limpio
 
 const WS_URL   = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws/parking';
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -139,13 +140,18 @@ export const useParkingStore = create<ParkingState>((set, get) => ({
     };
 
     ws.onerror = () => {
-      // No loguear en consola — el status en la UI ya lo indica
       set({ wsStatus: 'error', wsError: 'Backend no disponible. Mostrando datos de referencia.' });
     };
 
     ws.onclose = () => {
       ws = null;
       set({ wsStatus: 'disconnected' });
+
+      // Solo reconectar si no fue un cierre intencional (ej. cleanup de useEffect)
+      if (intentionalClose) {
+        intentionalClose = false;
+        return;
+      }
 
       // Reconexión con backoff exponencial: 3s → 6s → 12s → 24s → 30s (máx)
       reconnectTimer = setTimeout(() => {
@@ -156,8 +162,9 @@ export const useParkingStore = create<ParkingState>((set, get) => ({
   },
 
   disconnect: () => {
+    intentionalClose = true;
     if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
-    reconnectDelay = 3000; // resetear para la próxima vez
+    reconnectDelay = 3000;
     if (ws) { ws.close(); ws = null; }
     set({ wsStatus: 'disconnected' });
   },

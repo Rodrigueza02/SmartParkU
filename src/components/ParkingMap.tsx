@@ -25,10 +25,18 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
   const [activeFilter, setActiveFilter] = useState<SlotType | "todos">("todos");
   const [selectedSlot, setSelectedSlot] = useState<ParkingSlot | null>(null);
 
-  // Conectar al WebSocket al montar
+  // Conectar al WebSocket al montar — delay para evitar el doble-mount de React 18 StrictMode
   useEffect(() => {
-    connect();
-    return () => disconnect();
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      if (!cancelled) connect();
+    }, 100);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      disconnect();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ─── Convertir el Record<string, ParkingSlot> a arrays por tipo ──────────────
