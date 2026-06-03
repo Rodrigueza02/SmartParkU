@@ -3,19 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 193, 235, 221; /* mint.pastel */
-  --background-end-rgb: 253, 253, 253; /* softWhite */
+  --foreground-rgb: 30, 58, 95;       /* ucc-navy */
+  --background-start-rgb: 230, 247, 255; /* azul muy suave */
+  --background-end-rgb: 240, 251, 235;   /* verde muy suave */
+
+  /* Colores UCC como variables CSS */
+  --ucc-green: #6AB023;
+  --ucc-blue:  #00AEEF;
+  --ucc-lime:  #B5D334;
+  --ucc-navy:  #1E3A5F;
+  --ucc-cyan:  #00BCD4;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+    135deg,
+    #E6F7FF 0%,
+    #F8FAFC 50%,
+    #F0FBEB 100%
+  );
   min-height: 100vh;
 }
 
@@ -31,13 +38,17 @@ body {
   .animate-spin-slow {
     animation: spin 8s linear infinite;
   }
+
+  /* Texto con gradiente UCC */
+  .text-ucc-gradient {
+    background: linear-gradient(90deg, #6AB023, #00AEEF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 }
 
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
