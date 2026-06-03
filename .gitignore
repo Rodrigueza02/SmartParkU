@@ -1,0 +1,44 @@
+# ─── Node / Next.js ───────────────────────────────────────────────────────────
+node_modules/
+.next/
+out/
+build/
+dist/
+.npm
+*.tsbuildinfo
+next-env.d.ts
+
+# ─── Entornos y secretos ──────────────────────────────────────────────────────
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+
+# ─── Python / Backend ─────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+venv/
+env/
+.venv/
+*.sqlite3
+*.db
+
+# ─── Flutter / Mobile ─────────────────────────────────────────────────────────
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/build/
+mobile/.packages
+mobile/pubspec.lock
+
+# ─── Editores y OS ────────────────────────────────────────────────────────────
+.vscode/settings.json
+.DS_Store
+Thumbs.db
+*.log

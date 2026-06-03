@@ -1,0 +1,22 @@
+# Normalizar line endings al hacer commit (LF en repo, CRLF en Windows checkout)
+* text=auto
+
+# Forzar LF para archivos de código
+*.py text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.dart text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.mjs text eol=lf
+
+# Binarios
+*.png binary
+*.jpg binary
+*.ico binary

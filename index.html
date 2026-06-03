@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartParkU - UCC Pasto</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .nordic-shadow {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        .parking-slot {
+            transition: all 0.3s ease;
+        }
+        .bottom-sheet {
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .bottom-sheet.active {
+            transform: translateY(0);
+        }
+        .central-street {
+            background-image: radial-gradient(#d1d5db 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <!-- Mobile Container -->
+    <div class="w-full max-w-md bg-gray-50 min-h-[800px] rounded-[3rem] border-[8px] border-gray-900 overflow-hidden relative nordic-shadow flex flex-col">
+        
+        <!-- Status Bar Simulation -->
+        <div class="h-8 w-full bg-white flex justify-between items-center px-8 pt-2">
+            <span class="text-xs font-semibold">9:41</span>
+            <div class="flex space-x-1">
+                <div class="w-4 h-2 bg-black rounded-full"></div>
+                <div class="w-2 h-2 bg-black rounded-full"></div>
+            </div>
+        </div>
+
+        <!-- Header / Filters -->
+        <header class="bg-white px-6 py-6 pb-2">
+            <h1 class="text-2xl font-bold text-gray-800 mb-4">SmartParkU <span class="text-xs font-light text-gray-400">UCC Pasto</span></h1>
+            
+            <div class="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
+                <button class="filter-chip px-5 py-2 rounded-full text-sm font-medium transition-colors bg-[#A3E4D7] text-gray-800 border-none">
+                    Carros
+                </button>
+                <button class="filter-chip px-5 py-2 rounded-full text-sm font-medium transition-colors bg-white text-gray-500 border border-gray-100 hover:bg-gray-50">
+                    Motos
+                </button>
+                <button class="filter-chip px-5 py-2 rounded-full text-sm font-medium transition-colors bg-white text-gray-500 border border-gray-100 hover:bg-gray-50">
+                    Bicicletas
+                </button>
+            </div>
+        </header>
+
+        <!-- Map Container -->
+        <main class="flex-1 overflow-y-auto p-6 flex flex-col items-center">
+            
+            <!-- Upper Zones (Motos & Bicis) -->
+            <div class="w-full grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-white p-3 rounded-2xl border border-gray-100 nordic-shadow">
+                    <span class="text-[10px] uppercase tracking-wider text-gray-400 font-bold block mb-2">Zona Motos</span>
+                    <div class="grid grid-cols-4 gap-1">
+                        <div class="h-6 w-full bg-[#A3E4D7] rounded-sm"></div>
+                        <div class="h-6 w-full bg-[#A3E4D7] rounded-sm"></div>
+                        <div class="h-6 w-full bg-red-200 rounded-sm"></div>
+                        <div class="h-6 w-full bg-[#A3E4D7] rounded-sm"></div>
+                    </div>
+                </div>
+                <div class="bg-white p-3 rounded-2xl border border-gray-100 nordic-shadow">
+                    <span class="text-[10px] uppercase tracking-wider text-gray-400 font-bold block mb-2">Zona Bicis</span>
+                    <div class="grid grid-cols-4 gap-1">
+                        <div class="h-6 w-full bg-[#A3E4D7] rounded-sm"></div>
+                        <div class="h-6 w-full bg-[#A3E4D7] rounded-sm"></div>
+                        <div class="h-6 w-full bg-[#A3E4D7] rounded-sm"></div>
+                        <div class="h-6 w-full bg-[#A3E4D7] rounded-sm"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parking Layout -->
+            <div class="relative w-full flex justify-between bg-white rounded-3xl p-4 nordic-shadow border border-gray-100">
+                
+                <!-- Left Row (1-11) -->
+                <div class="flex flex-col space-y-2">
+                    <div id="slot-1" onclick="selectSlot(1)" class="parking-slot w-14 h-10 bg-[#A3E4D7] rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer hover:opacity-80">1</div>
+                    <div id="slot-2" onclick="selectSlot(2)" class="parking-slot w-14 h-10 bg-[#A3E4D7] rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer hover:opacity-80">2</div>
+                    <div id="slot-3" onclick="selectSlot(3)" class="parking-slot w-14 h-10 bg-[#A3E4D7] rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer hover:opacity-80">3</div>
+                    <div id="slot-4" onclick="selectSlot(4)" class="parking-slot w-14 h-10 bg-red-300 rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer">4</div>
+                    <div id="slot-5" onclick="selectSlot(5)" class="parking-slot w-14 h-10 bg-[#A3E4D7] rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer hover:opacity-80">5</div>
+                    <div id="slot-6" onclick="selectSlot(6)" class="parking-slot w-14 h-10 bg-[#A3E4D7] rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer hover:opacity-80">6</div>
+                    <div id="slot-7" onclick="selectSlot(7)" class="parking-slot w-14 h-10 bg-[#A3E4D7] rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer hover:opacity-80">7</div>
+                    <div id="slot-8" onclick="selectSlot(8)" class="parking-slot w-14 h-10 bg-red-300 rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer">8</div>
+                    <div id="slot-9" onclick="selectSlot(9)" class="parking-slot w-14 h-10 bg-[#A3E4D7] rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer hover:opacity-80">9</div>
+                    <div id="slot-10" onclick="selectSlot(10)" class="parking-slot w-14 h-10 bg-[#A3E4D7] rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer hover:opacity-80">10</div>
+                    <div id="slot-11" onclick="selectSlot(11)" class="parking-slot w-14 h-10 bg-[#A3E4D7] rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer hover:opacity-80">11</div>
+                </div>
+
+                <!-- Central Street -->
+                <div class="flex-1 mx-4 central-street bg-gray-100 rounded-xl relative overflow-hidden">
+                    <div class="absolute inset-0 flex flex-col items-center justify-center space-y-12 opacity-20">
+                        <div class="w-1 h-8 bg-white rounded-full"></div>
+                        <div class="w-1 h-8 bg-white rounded-full"></div>
+                        <div class="w-1 h-8 bg-white rounded-full"></div>
+                        <div class="w-1 h-8 bg-white rounded-full"></div>
+                        <div class="w-1 h-8 bg-white rounded-full"></div>
+                    </div>
+                </div>
+
+                <!-- Right Row (12-22) -->
+                <div class="flex flex-col space-y-2">
+                    <div id="slot-12" onclick="selectSlot(12)" class="parking-slot w-14 h-10 bg-[#A3E4D7] rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer hover:opacity-80">12</div>
+                    <div id="slot-13" onclick="selectSlot(13)" class="parking-slot w-14 h-10 bg-red-300 rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer">13</div>
+                    <div id="slot-14" onclick="selectSlot(14)" class="parking-slot w-14 h-10 bg-[#A3E4D7] rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer hover:opacity-80">14</div>
+                    <div id="slot-15" onclick="selectSlot(15)" class="parking-slot w-14 h-10 bg-[#A3E4D7] rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer hover:opacity-80">15</div>
+                    <div id="slot-16" onclick="selectSlot(16)" class="parking-slot w-14 h-10 bg-[#A3E4D7] rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer hover:opacity-80">16</div>
+                    <div id="slot-17" onclick="selectSlot(17)" class="parking-slot w-14 h-10 bg-red-300 rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer">17</div>
+                    <div id="slot-18" onclick="selectSlot(18)" class="parking-slot w-14 h-10 bg-[#A3E4D7] rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer hover:opacity-80">18</div>
+                    <div id="slot-19" onclick="selectSlot(19)" class="parking-slot w-14 h-10 bg-[#A3E4D7] rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer hover:opacity-80">19</div>
+                    <div id="slot-20" onclick="selectSlot(20)" class="parking-slot w-14 h-10 bg-[#A3E4D7] rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer hover:opacity-80">20</div>
+                    <div id="slot-21" onclick="selectSlot(21)" class="parking-slot w-14 h-10 bg-red-300 rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer">21</div>
+                    <div id="slot-22" onclick="selectSlot(22)" class="parking-slot w-14 h-10 bg-[#A3E4D7] rounded-lg flex items-center justify-center text-[10px] font-bold text-gray-700 cursor-pointer hover:opacity-80">22</div>
+                </div>
+            </div>
+
+            <!-- Entrance/Exit Indicator -->
+            <div class="w-full flex justify-end mt-4">
+                <div class="flex items-center space-x-2 bg-white px-4 py-2 rounded-xl border border-gray-100 nordic-shadow">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Entrada / Salida</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
+                        <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+                    </svg>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Bottom Sheet -->
+        <div id="bottom-sheet" class="bottom-sheet absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-8 nordic-shadow z-50">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+            <div class="mb-6">
+                <h3 id="sheet-title" class="text-xl font-bold text-gray-800 mb-2">Cajón 1 Disponible</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">¿Deseas reservar este espacio para mitigar la huella de CO₂? Ayudarás a reducir el tiempo de búsqueda y emisiones.</p>
+            </div>
+            <button onclick="closeSheet()" class="w-full bg-[#A3E4D7] hover:bg-[#8fd1c4] text-gray-800 font-bold py-4 rounded-2xl transition-all active:scale-[0.98] nordic-shadow">
+                Reservar Cupo
+            </button>
+        </div>
+
+        <!-- Overlay -->
+        <div id="overlay" onclick="closeSheet()" class="hidden absolute inset-0 bg-black/10 backdrop-blur-[2px] z-40"></div>
+
+        <!-- Tab Bar -->
+        <nav class="h-20 bg-white border-t border-gray-100 flex justify-around items-center px-6">
+            <div class="flex flex-col items-center space-y-1">
+                <div class="w-6 h-6 bg-[#A3E4D7] rounded-md opacity-40"></div>
+                <span class="text-[10px] font-bold text-gray-800">Mapa</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <div class="w-6 h-6 bg-gray-100 rounded-md"></div>
+                <span class="text-[10px] font-bold text-gray-300">Reservas</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <div class="w-6 h-6 bg-gray-100 rounded-md"></div>
+                <span class="text-[10px] font-bold text-gray-300">Perfil</span>
+            </div>
+        </nav>
+
+    </div>
+
+    <script>
+        const sheet = document.getElementById('bottom-sheet');
+        const overlay = document.getElementById('overlay');
+        const sheetTitle = document.getElementById('sheet-title');
+
+        function selectSlot(num) {
+            const slot = document.getElementById(`slot-${num}`);
+            if (slot.classList.contains('bg-red-300')) return; // No interactable if occupied
+
+            sheetTitle.innerText = `Cajón ${num} Disponible`;
+            sheet.classList.add('active');
+            overlay.classList.remove('hidden');
+        }
+
+        function closeSheet() {
+            sheet.classList.remove('active');
+            overlay.classList.add('hidden');
+        }
+
+        // IoT Simulation
+        setInterval(() => {
+            const slots = [4, 8, 13, 17, 21]; // Initial occupied slots
+            const allSlots = Array.from({length: 22}, (_, i) => i + 1);
+            
+            // Pick two random slots to toggle
+            const random1 = Math.floor(Math.random() * 22) + 1;
+            const random2 = Math.floor(Math.random() * 22) + 1;
+
+            toggleSlot(random1);
+            setTimeout(() => toggleSlot(random2), 500);
+        }, 3000);
+
+        function toggleSlot(id) {
+            const el = document.getElementById(`slot-${id}`);
+            if (!el) return;
+
+            const isOccupied = el.classList.contains('bg-red-300');
+            
+            if (isOccupied) {
+                // Free it
+                el.classList.remove('bg-red-300');
+                el.classList.add('bg-[#A3E4D7]', 'hover:opacity-80', 'cursor-pointer');
+            } else {
+                // Occupy it
+                el.classList.add('bg-red-300');
+                el.classList.remove('bg-[#A3E4D7]', 'hover:opacity-80', 'cursor-pointer');
+                // If the sheet is open for this slot, close it
+                if (sheet.classList.contains('active') && sheetTitle.innerText.includes(`Cajón ${id}`)) {
+                    closeSheet();
+                }
+            }
+        }
+
+        // Filter chips interactivity
+        document.querySelectorAll('.filter-chip').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-chip').forEach(b => {
+                    b.classList.remove('bg-[#A3E4D7]', 'text-gray-800', 'border-none');
+                    b.classList.add('bg-white', 'text-gray-500', 'border', 'border-gray-100');
+                });
+                btn.classList.add('bg-[#A3E4D7]', 'text-gray-800', 'border-none');
+                btn.classList.remove('bg-white', 'text-gray-500', 'border', 'border-gray-100');
+            });
+        });
+    </script>
+</body>
+</html>
