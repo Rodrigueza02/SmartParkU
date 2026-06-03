@@ -25,15 +25,38 @@ PORT     = int(os.getenv("MQTT_PORT", "8883"))
 USERNAME = os.getenv("MQTT_USERNAME", "Juliana")
 PASSWORD = os.getenv("MQTT_PASSWORD", "1138524566Juli*")
 
+# ── Definición canónica de los 10 espacios fijos UCC Pasto ───────────────────
+# Esta tabla es la fuente de verdad compartida entre backend y frontend.
+# El campo "slot_id" coincide con el valor de "slot" que publica la Raspberry Pi.
+SLOTS_DEFINICION = [
+    {"slot_id": "slot_01", "label": "C-01", "tipo": "carro"},
+    {"slot_id": "slot_02", "label": "C-02", "tipo": "carro"},
+    {"slot_id": "slot_03", "label": "C-03", "tipo": "carro"},
+    {"slot_id": "slot_04", "label": "C-04", "tipo": "carro"},
+    {"slot_id": "slot_05", "label": "M-01", "tipo": "moto"},
+    {"slot_id": "slot_06", "label": "M-02", "tipo": "moto"},
+    {"slot_id": "slot_07", "label": "M-03", "tipo": "moto"},
+    {"slot_id": "slot_08", "label": "B-01", "tipo": "bicicleta"},
+    {"slot_id": "slot_09", "label": "B-02", "tipo": "bicicleta"},
+    {"slot_id": "slot_10", "label": "V-01", "tipo": "vip"},
+]
+
 # ── Estado compartido en memoria ───────────────────────────────────────────────
-# Actualizado por MQTT, leido por WebSocket y endpoints REST
+# Inicializado con los 10 slots fijos en estado "libre".
+# Actualizado por MQTT, leido por WebSocket y endpoints REST.
 parking_state = {
     "espacios": {
-        # "slot_id": {"status": "libre"|"ocupado", "tipo": "carro"|"moto"|"bicicleta",
-        #             "distancia_cm": float, "updated_at": str}
+        s["slot_id"]: {
+            "status":       "libre",
+            "tipo":         s["tipo"],
+            "label":        s["label"],
+            "distancia_cm": None,
+            "updated_at":   None,
+        }
+        for s in SLOTS_DEFINICION
     },
     "entrada_libre": True,
-    "total_libre": 0,
+    "total_libre": len(SLOTS_DEFINICION),
     "total_ocupado": 0,
     "ultimo_sensor_cm": None,
     "timestamp": None,
@@ -98,11 +121,11 @@ def _on_message(client, userdata, msg):
     logger.debug(f"MQTT [{topic}] {data}")
 
     # sensores/ultrasonico — acepta formato Raspberry {"distancia_cm": X}
-    # y formato propio {"distancia": X, "slot": "1", "tipo": "carro"}
+    # y formato propio {"distancia": X, "slot": "slot_01", "tipo": "carro"}
     if topic == "sensores/ultrasonico" or topic.startswith("sensores/"):
         # Acepta "distancia" o "distancia_cm" (formato Raspberry)
         distancia = data.get("distancia") or data.get("distancia_cm")
-        slot_id   = str(data.get("slot", "1"))   # default slot 1 si la Raspberry no lo manda
+        slot_id   = str(data.get("slot", "slot_01"))  # default slot_01 si la Raspberry no lo manda
         tipo      = data.get("tipo", "carro")
 
         if distancia is not None:
@@ -112,9 +135,13 @@ def _on_message(client, userdata, msg):
             if float(distancia) > 400:
                 return
             status = "ocupado" if float(distancia) < 15 else "libre"
+
+            # Si el slot ya existe (está en los 10 fijos), preservar su label y tipo
+            existing = parking_state["espacios"].get(slot_id)
             parking_state["espacios"][slot_id] = {
                 "status":       status,
-                "tipo":         tipo,
+                "tipo":         existing["tipo"] if existing else tipo,
+                "label":        existing["label"] if existing else slot_id,
                 "distancia_cm": distancia,
                 "updated_at":   now_str,
             }
@@ -126,12 +153,13 @@ def _on_message(client, userdata, msg):
         slot_id = str(data.get("slot", "?"))
         status  = data.get("status", "desconocido")
         tipo    = data.get("tipo", "carro")
-        if slot_id in parking_state["espacios"]:
+        existing = parking_state["espacios"].get(slot_id)
+        if existing:
             parking_state["espacios"][slot_id]["status"]     = status
             parking_state["espacios"][slot_id]["updated_at"] = now_str
         else:
             parking_state["espacios"][slot_id] = {
-                "status": status, "tipo": tipo,
+                "status": status, "tipo": tipo, "label": slot_id,
                 "distancia_cm": None, "updated_at": now_str,
             }
         _recalculate_totals()

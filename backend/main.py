@@ -6,7 +6,7 @@ import json
 import models, schemas, auth, database
 from database import engine, get_db
 import mqtt_client
-from mqtt_client import parking_state, publish_servo, add_ws_listener, remove_ws_listener, stop_mqtt
+from mqtt_client import parking_state, publish_servo, add_ws_listener, remove_ws_listener, stop_mqtt, SLOTS_DEFINICION
 
 # Crear las tablas en la base de datos
 models.Base.metadata.create_all(bind=engine)
@@ -91,6 +91,52 @@ def get_parking_estado():
     Los datos son actualizados automáticamente via MQTT desde los sensores.
     """
     return parking_state
+
+
+@app.get("/api/v1/parking/slots", response_model=schemas.ParkingEstadoResponse, summary="Definición y estado de los 10 espacios")
+def get_parking_slots(db: Session = Depends(get_db)):
+    """
+    Retorna los 10 espacios fijos del parqueadero UCC Pasto con su estado actual.
+
+    Combina la definición persistente de la DB con el estado en tiempo real
+    del parking_state en memoria (actualizado por MQTT).
+    Útil para que el Frontend inicialice el mapa con layout fijo.
+    """
+    espacios_db = db.query(models.EspacioParqueo).order_by(models.EspacioParqueo.id).all()
+
+    # Si la DB no tiene datos todavía, usar la definición canónica en memoria
+    if not espacios_db:
+        from datetime import datetime
+        resultado = []
+        for i, s in enumerate(SLOTS_DEFINICION, start=1):
+            estado_live = parking_state["espacios"].get(s["slot_id"], {})
+            resultado.append(schemas.EspacioParqueoResponse(
+                id=i,
+                slot_id=s["slot_id"],
+                label=s["label"],
+                tipo=s["tipo"],
+                status=estado_live.get("status", "libre"),
+                distancia_cm=estado_live.get("distancia_cm"),
+                updated_at=estado_live.get("updated_at"),
+            ))
+    else:
+        resultado = []
+        for espacio in espacios_db:
+            # Combinar con estado en tiempo real del MQTT
+            estado_live = parking_state["espacios"].get(espacio.slot_id, {})
+            espacio.status       = estado_live.get("status", espacio.status)
+            espacio.distancia_cm = estado_live.get("distancia_cm", espacio.distancia_cm)
+            resultado.append(espacio)
+
+    total_libre   = sum(1 for e in resultado if (e.status if isinstance(e, schemas.EspacioParqueoResponse) else e.status) == "libre")
+    total_ocupado = len(resultado) - total_libre
+
+    return schemas.ParkingEstadoResponse(
+        espacios=resultado,
+        total_libre=total_libre,
+        total_ocupado=total_ocupado,
+        total_espacios=len(resultado),
+    )
 
 
 @app.post("/api/v1/parking/servo", summary="Controla la barrera de acceso")
