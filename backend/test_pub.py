@@ -24,25 +24,39 @@ def on_connect(client, userdata, flags, reason_code, properties):
         print(f"[OK] Conectado a {BROKER}")
         print("[...] Enviando mensajes de prueba...\n")
 
-        # Cajon 1 ocupado (8 cm = vehiculo presente)
+        # slot_01 ocupado (8 cm = vehiculo presente) — C-01 carro
         client.publish("sensores/ultrasonico", json.dumps(
-            {"slot": "1", "distancia": 8, "tipo": "carro"}
+            {"slot": "slot_01", "distancia": 8, "tipo": "carro", "label": "C-01"}
         ))
-        print("[->] cajon=1   distancia=8cm   tipo=carro  -> OCUPADO")
+        print("[->] slot_01 (C-01)  distancia=8cm   tipo=carro  -> OCUPADO")
         time.sleep(0.4)
 
-        # Cajon 2 libre (60 cm)
+        # slot_02 libre (60 cm) — C-02 carro
         client.publish("sensores/ultrasonico", json.dumps(
-            {"slot": "2", "distancia": 60, "tipo": "carro"}
+            {"slot": "slot_02", "distancia": 60, "tipo": "carro", "label": "C-02"}
         ))
-        print("[->] cajon=2   distancia=60cm  tipo=carro  -> LIBRE")
+        print("[->] slot_02 (C-02)  distancia=60cm  tipo=carro  -> LIBRE")
         time.sleep(0.4)
 
-        # Cajon 23 moto ocupado
+        # slot_05 moto ocupado — M-01
         client.publish("sensores/ultrasonico", json.dumps(
-            {"slot": "23", "distancia": 5, "tipo": "moto"}
+            {"slot": "slot_05", "distancia": 5, "tipo": "moto", "label": "M-01"}
         ))
-        print("[->] cajon=23  distancia=5cm   tipo=moto   -> OCUPADO")
+        print("[->] slot_05 (M-01)  distancia=5cm   tipo=moto   -> OCUPADO")
+        time.sleep(0.4)
+
+        # slot_08 bicicleta libre — B-01
+        client.publish("sensores/ultrasonico", json.dumps(
+            {"slot": "slot_08", "distancia": 45, "tipo": "bicicleta", "label": "B-01"}
+        ))
+        print("[->] slot_08 (B-01)  distancia=45cm  tipo=bici   -> LIBRE")
+        time.sleep(0.4)
+
+        # slot_10 VIP libre — V-01
+        client.publish("sensores/ultrasonico", json.dumps(
+            {"slot": "slot_10", "distancia": 70, "tipo": "vip", "label": "V-01"}
+        ))
+        print("[->] slot_10 (V-01)  distancia=70cm  tipo=vip    -> LIBRE")
         time.sleep(0.4)
 
         # Estado barrera abierta

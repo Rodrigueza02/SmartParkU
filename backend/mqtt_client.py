@@ -170,15 +170,17 @@ def _on_message(client, userdata, msg):
         parking_state["entrada_libre"] = data.get("libre", True)
         _broadcast_state()
 
-    # parqueadero/espacios (mensaje masivo)
+    # parqueadero/espacios (mensaje masivo del simulador o la Raspberry)
     elif topic == "parqueadero/espacios":
         espacios = data.get("espacios", [])
         for e in espacios:
-            slot_id = str(e.get("slot"))
+            slot_id  = str(e.get("slot"))
+            existing = parking_state["espacios"].get(slot_id)
             parking_state["espacios"][slot_id] = {
                 "status":       e.get("status", "libre"),
-                "tipo":         e.get("tipo", "carro"),
-                "distancia_cm": e.get("distancia_cm"),
+                "tipo":         e.get("tipo")         or (existing["tipo"]  if existing else "carro"),
+                "label":        e.get("label")        or (existing["label"] if existing else slot_id),
+                "distancia_cm": e.get("distancia_cm") or (existing["distancia_cm"] if existing else None),
                 "updated_at":   now_str,
             }
         _recalculate_totals()
