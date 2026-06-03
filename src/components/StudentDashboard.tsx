@@ -2,27 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Leaf, 
-  Car, 
-  Bike, 
-  Zap, 
-  AlertTriangle, 
-  ChevronRight, 
-  User,
-  MapPin,
-  Clock,
-  Navigation,
-  LogOut,
-  Calendar,
-  ShieldAlert
+import {
+  Leaf, Car, Bike, Zap, AlertTriangle, ChevronRight,
+  User, MapPin, Clock, Navigation, LogOut, Calendar, ShieldAlert
 } from 'lucide-react';
 import UCCSwitch from '@/components/UCCSwitch';
 import StudentProfile from '@/components/StudentProfile';
 import ParkingMap from '@/components/ParkingMap';
 import { useAuthStore } from '@/store/authStore';
 
-// --- Tipos y Mock Data ---
 type SpotStatus = 'available' | 'occupied' | 'vip';
 type VehicleType = 'car' | 'moto' | 'scooter';
 
@@ -34,33 +22,38 @@ interface ParkingSpot {
 }
 
 const INITIAL_SPOTS: ParkingSpot[] = [
-  { id: 'A1', status: 'available', type: 'car', label: 'C-01' },
-  { id: 'A2', status: 'occupied', type: 'car', label: 'C-02' },
-  { id: 'A3', status: 'vip', type: 'car', label: 'V-01' },
-  { id: 'B1', status: 'available', type: 'moto', label: 'M-01' },
-  { id: 'B2', status: 'available', type: 'moto', label: 'M-02' },
-  { id: 'B3', status: 'occupied', type: 'moto', label: 'M-03' },
-  { id: 'C1', status: 'available', type: 'scooter', label: 'S-01' },
-  { id: 'C2', status: 'vip', type: 'scooter', label: 'V-02' },
-  { id: 'C3', status: 'available', type: 'car', label: 'C-03' },
-  { id: 'D1', status: 'occupied', type: 'car', label: 'C-04' },
-  { id: 'D2', status: 'available', type: 'car', label: 'C-05' },
-  { id: 'D3', status: 'available', type: 'car', label: 'C-06' },
+  { id: 'slot_01', status: 'available',  type: 'car',    label: 'C-01' },
+  { id: 'slot_02', status: 'occupied',   type: 'car',    label: 'C-02' },
+  { id: 'slot_03', status: 'vip',        type: 'car',    label: 'C-03' },
+  { id: 'slot_04', status: 'available',  type: 'car',    label: 'C-04' },
+  { id: 'slot_05', status: 'available',  type: 'moto',   label: 'M-01' },
+  { id: 'slot_06', status: 'occupied',   type: 'moto',   label: 'M-02' },
+  { id: 'slot_07', status: 'available',  type: 'moto',   label: 'M-03' },
+  { id: 'slot_08', status: 'available',  type: 'scooter',label: 'B-01' },
+  { id: 'slot_09', status: 'occupied',   type: 'scooter',label: 'B-02' },
+  { id: 'slot_10', status: 'vip',        type: 'car',    label: 'V-01' },
 ];
+
+const UCC = {
+  green: '#6AB023',
+  blue:  '#00AEEF',
+  lime:  '#B5D334',
+  navy:  '#1E3A5F',
+  cyan:  '#00BCD4',
+};
 
 const StudentDashboard = ({ user }: { user: any }) => {
   const logout = useAuthStore((state) => state.logout);
   const [spots, setSpots] = useState<ParkingSpot[]>(INITIAL_SPOTS);
   const [filter, setFilter] = useState<VehicleType | 'all'>('all');
-  const [co2Saved, setCo2Saved] = useState(1240); // Gramos de CO2
+  const [co2Saved, setCo2Saved] = useState(1240);
   const [view, setView] = useState<'map' | 'profile' | 'reservations' | 'panic' | 'history'>('map');
 
-  // Simulación de tiempo real IoT
   useEffect(() => {
     const interval = setInterval(() => {
-      setSpots(currentSpots => 
-        currentSpots.map(spot => {
-          if (Math.random() > 0.92) { // 8% de probabilidad de cambio
+      setSpots(current =>
+        current.map(spot => {
+          if (Math.random() > 0.92) {
             const newStatus: SpotStatus = Math.random() > 0.5 ? 'available' : 'occupied';
             return { ...spot, status: spot.status === 'vip' ? 'vip' : newStatus };
           }
@@ -72,161 +65,176 @@ const StudentDashboard = ({ user }: { user: any }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const filteredSpots = spots.filter(s => filter === 'all' || s.type === filter);
-
   const navigationItems = [
-    { id: 'map', label: 'MAPA IOT', icon: Navigation },
+    { id: 'map',          label: 'MAPA',     icon: Navigation },
     { id: 'reservations', label: 'RESERVAS', icon: Calendar },
-    { id: 'panic', label: 'PÁNICO', icon: ShieldAlert, color: 'text-red-500' },
-    { id: 'history', label: 'GREEN', icon: Leaf },
-    { id: 'profile', label: 'PERFIL', icon: User },
+    { id: 'panic',        label: 'PÁNICO',   icon: ShieldAlert, color: 'text-red-400' },
+    { id: 'history',      label: 'GREEN',    icon: Leaf },
+    { id: 'profile',      label: 'PERFIL',   icon: User },
   ];
 
-  if (view === 'profile') {
-    return <StudentProfile user={user} onBack={() => setView('map')} />;
-  }
+  if (view === 'profile') return <StudentProfile user={user} onBack={() => setView('map')} />;
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] pb-24 font-sans text-slate-800">
-      {/* 1. Header Sostenible & Perfil */}
-      <header className="px-6 pt-8 pb-4">
-        <div className="flex justify-between items-center mb-6">
-          <motion.div 
-            whileTap={{ scale: 0.98 }}
+    <div className="min-h-screen pb-24 font-sans" style={{ background: '#F4FBFF' }}>
+
+      {/* ── Header ── */}
+      <header
+        className="px-6 pt-8 pb-5"
+        style={{ background: 'linear-gradient(135deg, #1E3A5F 0%, #00AEEF 100%)' }}
+      >
+        <div className="flex justify-between items-center mb-5">
+          <motion.div
+            whileTap={{ scale: 0.97 }}
             onClick={() => setView('profile')}
-            className="flex items-center gap-3 cursor-pointer group"
+            className="flex items-center gap-3 cursor-pointer"
           >
-            <div className="w-12 h-12 rounded-2xl bg-[#A3E4D7] flex items-center justify-center text-white shadow-sm group-hover:shadow-md transition-all">
-              <User size={24} />
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center shadow"
+              style={{ background: 'rgba(255,255,255,0.2)', border: '1.5px solid rgba(255,255,255,0.3)' }}
+            >
+              <User size={22} className="text-white" />
             </div>
             <div>
-              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Bienvenido de nuevo</p>
-              <h1 className="text-xl font-bold group-hover:text-teal-600 transition-colors">{user?.nombre || 'Estudiante UCC'}</h1>
+              <p className="text-xs text-white/60 font-medium uppercase tracking-wider">Bienvenido</p>
+              <h1 className="text-lg font-black text-white leading-tight">
+                {user?.nombre || 'Estudiante UCC'}
+              </h1>
             </div>
           </motion.div>
+
           <div className="flex gap-2">
-            <motion.button 
-              whileTap={{ scale: 0.95 }}
-              className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100"
+            <motion.button
+              whileTap={{ scale: 0.92 }}
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)' }}
             >
-              <Zap size={20} className="text-yellow-500 fill-yellow-500" />
+              <Zap size={18} className="text-[#B5D334]" />
             </motion.button>
-            <motion.button 
-              whileTap={{ scale: 0.95 }}
+            <motion.button
+              whileTap={{ scale: 0.92 }}
               onClick={() => logout()}
-              className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center border border-red-100 text-red-500"
-              title="Cerrar sesión"
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(255,80,80,0.2)', border: '1px solid rgba(255,80,80,0.3)' }}
             >
-              <LogOut size={20} />
+              <LogOut size={18} className="text-red-300" />
             </motion.button>
           </div>
         </div>
 
-        {/* Widget Green Impact (RF11) */}
-        <motion.div 
-          initial={{ y: 20, opacity: 0 }}
+        {/* Widget CO2 */}
+        <motion.div
+          initial={{ y: 16, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-white rounded-3xl p-5 shadow-xl shadow-slate-200/40 border border-[#A3E4D7]/30 relative overflow-hidden"
+          className="rounded-3xl p-5 relative overflow-hidden"
+          style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)' }}
         >
-          <div className="flex justify-between items-center relative z-10">
+          <div className="flex justify-between items-center">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <Leaf size={16} className="text-[#A3E4D7]" />
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Green Impact UCC</span>
+                <Leaf size={14} className="text-[#B5D334]" />
+                <span className="text-xs font-bold text-white/60 uppercase tracking-widest">Green Impact UCC</span>
               </div>
               <div className="flex items-baseline gap-1">
-                <motion.span 
+                <motion.span
                   key={co2Saved}
-                  initial={{ opacity: 0, y: -10 }}
+                  initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-3xl font-black text-slate-800"
+                  className="text-3xl font-black text-white"
                 >
                   {co2Saved}
                 </motion.span>
-                <span className="text-sm font-medium text-slate-500">g de CO₂ ahorrados</span>
+                <span className="text-sm font-medium text-white/60">g de CO₂ ahorrados</span>
               </div>
             </div>
-            
-            {/* Icono de hoja que se llena gradualmente */}
-            <div className="relative w-14 h-14">
-              <Leaf size={56} className="text-slate-100 absolute inset-0" />
-              <motion.div 
-                className="absolute inset-0 overflow-hidden"
-                initial={{ height: "0%" }}
-                animate={{ height: `${Math.min((co2Saved / 2000) * 100, 100)}%` }}
-                style={{ bottom: 0, top: 'auto' }}
-              >
-                <Leaf size={56} className="text-[#A3E4D7] fill-[#A3E4D7]" />
-              </motion.div>
+            <div className="relative w-12 h-12">
+              <Leaf size={48} className="text-white/10 absolute inset-0" />
+              <Leaf size={48} className="text-[#B5D334] fill-[#B5D334] absolute inset-0 opacity-80" />
             </div>
           </div>
-          <div className="mt-4 flex items-center gap-2">
-            <div className="h-1.5 flex-1 bg-slate-50 rounded-full overflow-hidden">
-              <motion.div 
-                className="h-full bg-gradient-to-r from-[#A3E4D7] to-teal-400"
+          <div className="mt-3 flex items-center gap-2">
+            <div className="h-1.5 flex-1 bg-white/20 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: 'linear-gradient(90deg, #B5D334, #6AB023)' }}
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min((co2Saved / 2000) * 100, 100)}%` }}
               />
             </div>
-            <span className="text-[10px] font-bold text-slate-400">META 2KG</span>
+            <span className="text-[9px] font-black text-white/50">META 2KG</span>
           </div>
         </motion.div>
       </header>
 
       {view === 'map' && (
         <>
-          {/* 2. Filtro de Vehículos (RF05) */}
-          <section className="px-6 py-4">
-            <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
+          {/* Filtros */}
+          <section className="px-5 py-4">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
               {[
-                { id: 'all', label: 'Todos', icon: MapPin },
-                { id: 'car', label: 'Automóvil', icon: Car },
-                { id: 'moto', label: 'Moto', icon: Bike },
-                { id: 'scooter', label: 'Scooter', icon: Zap },
+                { id: 'all',     label: 'Todos',      icon: MapPin },
+                { id: 'car',     label: 'Automóvil',  icon: Car },
+                { id: 'moto',    label: 'Moto',       icon: Bike },
+                { id: 'scooter', label: 'Bicicleta',  icon: Zap },
               ].map((type) => (
                 <motion.button
                   key={type.id}
-                  whileTap={{ scale: 0.95 }}
+                  whileTap={{ scale: 0.94 }}
                   onClick={() => setFilter(type.id as any)}
-                  className={`flex items-center gap-2 px-5 py-3 rounded-2xl whitespace-nowrap transition-all duration-300 ${
-                    filter === type.id 
-                      ? 'bg-slate-800 text-white shadow-lg' 
-                      : 'bg-white text-slate-500 border border-slate-100 shadow-sm'
-                  }`}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-2xl whitespace-nowrap text-sm font-bold transition-all duration-200"
+                  style={
+                    filter === type.id
+                      ? { background: UCC.navy, color: '#fff', boxShadow: '0 4px 14px rgba(30,58,95,0.25)' }
+                      : { background: '#fff', color: '#94a3b8', border: '1.5px solid #e2e8f0' }
+                  }
                 >
-                  <type.icon size={18} />
-                  <span className="text-sm font-semibold">{type.label}</span>
+                  <type.icon size={16} />
+                  {type.label}
                 </motion.button>
               ))}
             </div>
           </section>
 
-          {/* 3. Interactive Parking Map (RF05, RF06, RF07) */}
-          <section className="px-6 py-4">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold">Estado en Tiempo Real</h2>
+          {/* Mapa IoT */}
+          <section className="px-5 pb-4">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-base font-black" style={{ color: UCC.navy }}>
+                Estado en Tiempo Real
+              </h2>
+              <span
+                className="text-[10px] font-black px-3 py-1 rounded-full"
+                style={{ background: `${UCC.green}15`, color: UCC.green }}
+              >
+                IoT ACTIVO
+              </span>
             </div>
-
             <ParkingMap embedded />
           </section>
         </>
       )}
 
       {view === 'history' && (
-        <section className="px-6 py-8">
-          <div className="bg-emerald-50 rounded-[32px] p-8 border border-emerald-100">
-            <h2 className="text-2xl font-black text-emerald-800 mb-4">Historial Green</h2>
-            <p className="text-emerald-600 font-medium">Has ahorrado {co2Saved}g de CO₂ este mes.</p>
-            <div className="mt-8 space-y-4">
+        <section className="px-5 py-6">
+          <div
+            className="rounded-[28px] p-6 border"
+            style={{ background: `${UCC.green}10`, borderColor: `${UCC.green}30` }}
+          >
+            <h2 className="text-xl font-black mb-1" style={{ color: UCC.navy }}>Historial Green</h2>
+            <p className="text-sm font-medium mb-6" style={{ color: UCC.green }}>
+              Has ahorrado {co2Saved}g de CO₂ este mes.
+            </p>
+            <div className="space-y-3">
               {[1, 2, 3].map(i => (
-                <div key={i} className="bg-white p-4 rounded-2xl flex justify-between items-center shadow-sm">
+                <div
+                  key={i}
+                  className="bg-white p-4 rounded-2xl flex justify-between items-center shadow-sm border"
+                  style={{ borderColor: '#e2e8f0' }}
+                >
                   <div>
-                    <p className="text-sm font-bold text-slate-800">Reserva #{1020 + i}</p>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">24 Mayo, 2026</p>
+                    <p className="text-sm font-bold" style={{ color: UCC.navy }}>Reserva #{1020 + i}</p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">24 Mayo, 2026</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-black text-emerald-500">+12g CO₂</p>
-                  </div>
+                  <p className="text-sm font-black" style={{ color: UCC.green }}>+12g CO₂</p>
                 </div>
               ))}
             </div>
@@ -235,14 +243,15 @@ const StudentDashboard = ({ user }: { user: any }) => {
       )}
 
       {view === 'reservations' && (
-        <section className="px-6 py-8">
-          <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-xl shadow-slate-200/40">
-            <h2 className="text-2xl font-black text-slate-800 mb-2">Mis Reservas</h2>
-            <p className="text-slate-400 text-sm font-medium mb-8">No tienes reservas activas en este momento.</p>
-            <motion.button 
-              whileTap={{ scale: 0.95 }}
+        <section className="px-5 py-6">
+          <div className="bg-white rounded-[28px] p-6 border border-gray-100 shadow-lg">
+            <h2 className="text-xl font-black mb-1" style={{ color: UCC.navy }}>Mis Reservas</h2>
+            <p className="text-gray-400 text-sm font-medium mb-6">No tienes reservas activas.</p>
+            <motion.button
+              whileTap={{ scale: 0.96 }}
               onClick={() => setView('map')}
-              className="w-full bg-[#A3E4D7] text-white py-4 rounded-2xl font-bold"
+              className="w-full text-white py-4 rounded-2xl font-black"
+              style={{ background: `linear-gradient(135deg, ${UCC.green}, ${UCC.blue})` }}
             >
               Explorar Mapa
             </motion.button>
@@ -251,54 +260,62 @@ const StudentDashboard = ({ user }: { user: any }) => {
       )}
 
       {view === 'panic' && (
-        <section className="px-6 py-8">
-          <div className="bg-red-50 rounded-[32px] p-8 border border-red-100 text-center">
-            <ShieldAlert size={48} className="mx-auto text-red-400 mb-4" />
-            <h2 className="text-2xl font-black text-red-800 mb-2">Botón de Pánico</h2>
-            <p className="text-red-600 text-sm font-medium mb-8">Usa este botón solo en caso de emergencia real dentro del campus.</p>
-            <button className="w-full bg-red-500 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-red-200 animate-pulse">
+        <section className="px-5 py-6">
+          <div className="bg-red-50 rounded-[28px] p-6 border border-red-100 text-center">
+            <ShieldAlert size={44} className="mx-auto text-red-400 mb-3" />
+            <h2 className="text-xl font-black text-red-800 mb-2">Botón de Pánico</h2>
+            <p className="text-red-500 text-sm font-medium mb-6">
+              Úsalo solo en emergencias reales dentro del campus UCC.
+            </p>
+            <button className="w-full bg-red-500 text-white py-5 rounded-2xl font-black text-lg shadow-xl animate-pulse">
               ACTIVAR ALERTA
             </button>
           </div>
         </section>
       )}
 
-      {/* 4. Botón de Emergencia Sutil (RF12) */}
-      <div className="fixed bottom-24 right-6">
+      {/* FAB pánico */}
+      <div className="fixed bottom-24 right-5">
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          className="w-14 h-14 bg-white rounded-full shadow-2xl flex items-center justify-center border border-red-50/50 text-red-400"
+          className="w-13 h-13 bg-white rounded-full shadow-xl flex items-center justify-center border border-red-100 text-red-400 w-12 h-12"
         >
-          <AlertTriangle size={24} />
+          <AlertTriangle size={22} />
         </motion.button>
       </div>
 
-      {/* Navegación Inferior Estilo App Premium */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-slate-50 px-4 py-4 flex justify-between items-center z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.02)]">
-        {navigationItems.map((item) => (
-          <motion.button
-            key={item.id}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setView(item.id as any)}
-            className={`flex flex-col items-center gap-1.5 transition-all ${
-              view === item.id 
-                ? 'text-[#70C1B3]' 
-                : item.color || 'text-slate-300'
-            }`}
-          >
-            <div className={`p-2 rounded-2xl transition-colors ${
-              view === item.id ? 'bg-[#A3E4D7]/10' : 'bg-transparent'
-            }`}>
-              <item.icon size={22} strokeWidth={view === item.id ? 2.5 : 2} />
-            </div>
-            <span className={`text-[9px] font-black tracking-tighter ${
-              view === item.id ? 'opacity-100' : 'opacity-60'
-            }`}>
-              {item.label}
-            </span>
-          </motion.button>
-        ))}
+      {/* Nav inferior */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 px-4 py-3 flex justify-between items-center z-50 border-t"
+        style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)', borderColor: '#e2e8f0' }}
+      >
+        {navigationItems.map((item) => {
+          const isActive = view === item.id;
+          return (
+            <motion.button
+              key={item.id}
+              whileTap={{ scale: 0.88 }}
+              onClick={() => setView(item.id as any)}
+              className="flex flex-col items-center gap-1 transition-all"
+              style={{ color: isActive ? UCC.blue : item.color ? '#f87171' : '#94a3b8' }}
+            >
+              <div
+                className="p-2 rounded-2xl transition-all"
+                style={
+                  isActive
+                    ? { background: `${UCC.blue}15` }
+                    : { background: 'transparent' }
+                }
+              >
+                <item.icon size={21} strokeWidth={isActive ? 2.5 : 1.8} />
+              </div>
+              <span className={`text-[9px] font-black tracking-tight ${isActive ? 'opacity-100' : 'opacity-50'}`}>
+                {item.label}
+              </span>
+            </motion.button>
+          );
+        })}
       </nav>
     </div>
   );

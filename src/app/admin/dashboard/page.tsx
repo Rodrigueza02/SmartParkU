@@ -55,9 +55,9 @@ const ALERTS = [
 ];
 
 const USAGE_DATA = [
-  { label: "Autos", value: 65, color: "#70C1B3", icon: Car },
-  { label: "Motos", value: 25, color: "#C1EBDD", icon: Bike },
-  { label: "Scooters", value: 10, color: "#A8DADC", icon: Zap },
+  { label: "Autos",    value: 65, color: "#6AB023", icon: Car },
+  { label: "Motos",    value: 25, color: "#00AEEF", icon: Bike },
+  { label: "Scooters", value: 10, color: "#B5D334", icon: Zap },
 ];
 
 // --- Componentes ---
@@ -65,38 +65,44 @@ const USAGE_DATA = [
 const AdminHeader = () => {
   const logout = useAuthStore((state) => state.logout);
   const router = useRouter();
-
-  const handleLogout = () => {
-    logout();
-    router.push("/");
-  };
+  const handleLogout = () => { logout(); router.push("/"); };
 
   return (
-    <header className="p-6 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-lightGray">
+    <header
+      className="p-6 flex items-center justify-between sticky top-0 z-30 border-b"
+      style={{ background: 'rgba(244,251,255,0.92)', backdropFilter: 'blur(16px)', borderColor: '#e0f4ff' }}
+    >
       <div className="flex items-center gap-4">
-        <div className="w-14 h-14 rounded-2xl bg-mint-pastel flex items-center justify-center border-2 border-mint-solid/20 shadow-sm">
-          <User className="text-mint-solid w-8 h-8" />
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center shadow"
+          style={{ background: 'linear-gradient(135deg, #1E3A5F, #00AEEF)' }}
+        >
+          <User className="text-white w-7 h-7" />
         </div>
         <div>
           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Panel de Gestión</p>
-          <h1 className="text-xl font-black text-gray-800">Hola, <span className="text-mint-solid">Admin Jiliana</span></h1>
-          <span className="text-xs font-medium text-gray-500 bg-lightGray px-2 py-0.5 rounded-md">Mantenimiento / Gestión</span>
+          <h1 className="text-xl font-black" style={{ color: '#1E3A5F' }}>
+            Hola, <span style={{ color: '#00AEEF' }}>Admin Jiliana</span>
+          </h1>
+          <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
+            Mantenimiento / Gestión
+          </span>
         </div>
       </div>
       <div className="flex gap-2">
-        <button className="p-3 rounded-2xl bg-lightGray text-gray-600 hover:bg-mint-pastel/20 transition-colors relative">
-          <Bell className="w-6 h-6" />
-          <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
-        </button>
-        <button 
-          onClick={handleLogout}
-          className="p-3 rounded-2xl bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
-          title="Cerrar sesión"
+        <button
+          className="p-3 rounded-2xl relative transition-colors hover:opacity-80"
+          style={{ background: '#f1f5f9', color: '#64748b' }}
         >
-          <LogOut className="w-6 h-6" />
+          <Bell className="w-5 h-5" />
+          <span className="absolute top-3 right-3 w-2 h-2 bg-red-500 border-2 border-white rounded-full" />
         </button>
-        <button className="p-3 rounded-2xl bg-lightGray text-gray-600 hover:bg-mint-pastel/20 transition-colors lg:hidden">
-          <Menu className="w-6 h-6" />
+        <button
+          onClick={handleLogout}
+          className="p-3 rounded-2xl transition-colors hover:opacity-80"
+          style={{ background: '#fee2e2', color: '#ef4444' }}
+        >
+          <LogOut className="w-5 h-5" />
         </button>
       </div>
     </header>
@@ -327,7 +333,7 @@ const AdminMapWidget = () => {
 
 export default function AdminDashboard() {
   return (
-    <div className="min-h-screen bg-softWhite pb-24 font-sans text-gray-800">
+    <div className="min-h-screen pb-24 font-sans" style={{ background: '#F4FBFF', color: '#1E3A5F' }}>
       <AdminHeader />
 
       <main className="px-6 py-8 flex flex-col gap-10 max-w-4xl mx-auto">
@@ -343,33 +349,36 @@ export default function AdminDashboard() {
 
       </main>
 
-      {/* --- BOTTOM NAVIGATION (Admin Friendly) --- */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-lightGray px-8 py-4 flex justify-between items-center z-40">
-        <button className="flex flex-col items-center gap-1.5 text-mint-solid">
-          <div className="bg-mint-pastel/40 p-2 rounded-xl">
-            <LayoutDashboard className="w-6 h-6" />
+      {/* ── Bottom Nav ── */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t px-8 py-4 flex justify-between items-center z-40"
+        style={{ borderColor: '#e0f4ff' }}
+      >
+        <button className="flex flex-col items-center gap-1.5" style={{ color: '#00AEEF' }}>
+          <div className="p-2 rounded-xl" style={{ background: '#00AEEF15' }}>
+            <LayoutDashboard className="w-5 h-5" />
           </div>
           <span className="text-[10px] font-black uppercase tracking-tighter">Dashboard</span>
         </button>
-        <button className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-mint-solid transition-colors">
-          <MapIcon className="w-6 h-6" />
+        <button className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-[#00AEEF] transition-colors">
+          <MapIcon className="w-5 h-5" />
           <span className="text-[10px] font-bold uppercase tracking-tighter">Mapa Total</span>
         </button>
-        
-        {/* RF08: Panel Admin Completo */}
         <button className="relative flex flex-col items-center gap-1.5 group">
-          <div className="bg-gray-800 text-white p-4 rounded-2xl shadow-lg shadow-gray-200 -mt-10 group-active:scale-90 transition-transform">
-            <MoreVertical className="w-6 h-6" />
+          <div
+            className="text-white p-4 rounded-2xl -mt-10 group-active:scale-90 transition-transform"
+            style={{ background: 'linear-gradient(135deg, #1E3A5F, #00AEEF)', boxShadow: '0 8px 24px rgba(0,174,239,0.35)' }}
+          >
+            <MoreVertical className="w-5 h-5" />
           </div>
-          <span className="text-[10px] font-black text-gray-700 uppercase tracking-tighter mt-1">Panel Admin</span>
+          <span className="text-[10px] font-black text-gray-600 uppercase tracking-tighter mt-1">Panel Admin</span>
         </button>
-
-        <button className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-mint-solid transition-colors">
-          <PieChart className="w-6 h-6" />
+        <button className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-[#6AB023] transition-colors">
+          <PieChart className="w-5 h-5" />
           <span className="text-[10px] font-bold uppercase tracking-tighter">Reportes</span>
         </button>
-        <button className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-mint-solid transition-colors">
-          <User className="w-6 h-6" />
+        <button className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-[#6AB023] transition-colors">
+          <User className="w-5 h-5" />
           <span className="text-[10px] font-bold uppercase tracking-tighter">Usuarios</span>
         </button>
       </nav>
