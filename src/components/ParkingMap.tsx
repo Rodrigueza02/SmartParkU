@@ -34,10 +34,11 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
   // ─── Convertir el Record<string, ParkingSlot> a arrays por tipo ──────────────
   const allSlots = Object.values(slots);
 
-  // Si no hay datos del backend todavía, usar layout estático de UCC
-  const carSlots     = allSlots.filter(s => s.tipo === "carro");
-  const motoSlots    = allSlots.filter(s => s.tipo === "moto");
-  const bikeSlots    = allSlots.filter(s => s.tipo === "bicicleta");
+  // Layout fijo de 10 slots UCC Pasto
+  const carSlots  = allSlots.filter(s => s.tipo === "carro");    // C-01 a C-04
+  const motoSlots = allSlots.filter(s => s.tipo === "moto");     // M-01 a M-03
+  const bikeSlots = allSlots.filter(s => s.tipo === "bicicleta"); // B-01, B-02
+  const vipSlots  = allSlots.filter(s => s.tipo === "vip");      // V-01
 
   // ─── Componentes internos ─────────────────────────────────────────────────
   const FilterChip = ({
@@ -65,6 +66,7 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
   const SlotBox = ({ slot }: { slot: ParkingSlot }) => {
     const isFiltered = activeFilter !== "todos" && activeFilter !== slot.tipo;
     const isFree     = slot.status === "libre";
+    const isVIP      = slot.tipo === "vip";
 
     return (
       <motion.div
@@ -78,8 +80,8 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
         whileTap={isFree ? { scale: 0.93 } : {}}
         onClick={() => isFree && setSelectedSlot(slot)}
         className={`relative cursor-pointer rounded-lg border-2 border-white shadow-sm flex flex-col items-center justify-center transition-colors duration-500
-          ${isFree ? "bg-[#A3E4D7]" : "bg-red-200"}
-          ${slot.tipo === "carro" ? "h-14 w-10" : "h-8 w-7"}
+          ${isFree ? (isVIP ? "bg-yellow-200" : "bg-[#A3E4D7]") : "bg-red-200"}
+          ${slot.tipo === "carro" ? "h-14 w-10" : slot.tipo === "vip" ? "h-14 w-10" : "h-8 w-7"}
         `}
         title={`Cajón ${slot.slot} — ${slot.status}${slot.distancia_cm ? ` (${slot.distancia_cm} cm)` : ""}`}
       >
@@ -165,7 +167,7 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
         {allSlots.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 gap-3 text-slate-300">
             <Loader2 size={32} className="animate-spin" />
-            <p className="text-sm font-medium">Esperando datos del parqueadero...</p>
+            <p className="text-sm font-medium">Cargando datos del parqueadero...</p>
             <p className="text-[10px]">
               {wsStatus === "error"
                 ? "Verifica que el backend esté corriendo en localhost:8000"
@@ -176,39 +178,57 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
 
         {allSlots.length > 0 && (
           <>
-            {/* Zona motos + bicicletas */}
-            <div className="flex justify-between mb-8 gap-4 max-w-2xl mx-auto">
+            {/* Zona VIP + Motos + Bicicletas */}
+            <div className="flex justify-between mb-8 gap-6 max-w-2xl mx-auto">
+              {/* Slot VIP (izquierda) */}
+              <div className="flex-shrink-0">
+                <h3 className="text-[9px] uppercase tracking-wider text-gray-400 mb-2 font-bold">
+                  VIP ({vipSlots.filter(s => s.status === "libre").length}/1 libre)
+                </h3>
+                <div className="flex gap-1.5">
+                  {vipSlots.map(s => <SlotBox key={s.slot} slot={s} />)}
+                </div>
+              </div>
+
+              {/* Motos (centro) */}
               <div className="flex-1">
                 <h3 className="text-[9px] uppercase tracking-wider text-gray-400 mb-2 font-bold">
-                  Motos ({motoSlots.filter(s => s.status === "libre").length} libres)
+                  Motos ({motoSlots.filter(s => s.status === "libre").length}/3 libres)
                 </h3>
-                <div className="grid grid-cols-5 gap-1.5">
+                <div className="grid grid-cols-3 gap-1.5">
                   {motoSlots.map(s => <SlotBox key={s.slot} slot={s} />)}
                 </div>
               </div>
-              <div className="flex-1">
+
+              {/* Bicicletas (derecha) */}
+              <div className="flex-shrink-0">
                 <h3 className="text-[9px] uppercase tracking-wider text-gray-400 mb-2 font-bold text-right">
-                  Bicicletas ({bikeSlots.filter(s => s.status === "libre").length} libres)
+                  Bicicletas ({bikeSlots.filter(s => s.status === "libre").length}/2 libres)
                 </h3>
-                <div className="grid grid-cols-4 gap-1.5 justify-end">
+                <div className="grid grid-cols-2 gap-1.5 justify-end">
                   {bikeSlots.map(s => <SlotBox key={s.slot} slot={s} />)}
                 </div>
               </div>
             </div>
 
-            {/* Zona carros (2 filas) */}
+            {/* Zona carros (2 filas de 2 carros cada una = 4 total) */}
             <div className="relative max-w-2xl mx-auto">
-              <div className="absolute left-1/2 top-0 bottom-0 w-8 -translate-x-1/2 bg-gray-50/50 flex items-center justify-center">
+              <h3 className="text-[9px] uppercase tracking-wider text-gray-400 mb-3 font-bold text-center">
+                Carros ({carSlots.filter(s => s.status === "libre").length}/4 libres)
+              </h3>
+              <div className="absolute left-1/2 top-8 bottom-0 w-8 -translate-x-1/2 bg-gray-50/50 flex items-center justify-center">
                 <div className="h-full w-px border-l-2 border-dashed border-gray-200" />
               </div>
               <div className="flex justify-between gap-10 px-1">
+                {/* Lado izquierdo: C-01, C-02 */}
                 <div className="flex flex-col gap-2">
-                  {carSlots.slice(0, Math.ceil(carSlots.length / 2)).map(s => (
+                  {carSlots.slice(0, 2).map(s => (
                     <SlotBox key={s.slot} slot={s} />
                   ))}
                 </div>
+                {/* Lado derecho: C-03, C-04 */}
                 <div className="flex flex-col gap-2">
-                  {carSlots.slice(Math.ceil(carSlots.length / 2)).map(s => (
+                  {carSlots.slice(2, 4).map(s => (
                     <SlotBox key={s.slot} slot={s} />
                   ))}
                 </div>

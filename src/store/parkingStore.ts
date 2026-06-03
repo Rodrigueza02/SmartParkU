@@ -9,7 +9,7 @@ import { create } from 'zustand';
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
 export type SlotStatus = 'libre' | 'ocupado';
-export type VehicleType = 'carro' | 'moto' | 'bicicleta';
+export type VehicleType = 'carro' | 'moto' | 'bicicleta' | 'vip';
 
 export interface ParkingSlot {
   slot: string;
@@ -18,6 +18,20 @@ export interface ParkingSlot {
   distancia_cm: number | null;
   updated_at: string | null;
 }
+
+// ─── Slots Predefinidos (10 slots fijos UCC Pasto) ───────────────────────────
+export const DEFAULT_SLOTS: Record<string, ParkingSlot> = {
+  'C-01': { slot: 'C-01', status: 'libre', tipo: 'carro', distancia_cm: null, updated_at: null },
+  'C-02': { slot: 'C-02', status: 'libre', tipo: 'carro', distancia_cm: null, updated_at: null },
+  'C-03': { slot: 'C-03', status: 'libre', tipo: 'carro', distancia_cm: null, updated_at: null },
+  'C-04': { slot: 'C-04', status: 'libre', tipo: 'carro', distancia_cm: null, updated_at: null },
+  'M-01': { slot: 'M-01', status: 'libre', tipo: 'moto', distancia_cm: null, updated_at: null },
+  'M-02': { slot: 'M-02', status: 'libre', tipo: 'moto', distancia_cm: null, updated_at: null },
+  'M-03': { slot: 'M-03', status: 'libre', tipo: 'moto', distancia_cm: null, updated_at: null },
+  'B-01': { slot: 'B-01', status: 'libre', tipo: 'bicicleta', distancia_cm: null, updated_at: null },
+  'B-02': { slot: 'B-02', status: 'libre', tipo: 'bicicleta', distancia_cm: null, updated_at: null },
+  'V-01': { slot: 'V-01', status: 'libre', tipo: 'vip', distancia_cm: null, updated_at: null },
+};
 
 interface ParkingState {
   // Datos del parqueadero
@@ -47,8 +61,8 @@ const API_BASE    = process.env.NEXT_PUBLIC_API_URL  || 'http://localhost:8000';
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 export const useParkingStore = create<ParkingState>((set, get) => ({
-  slots: {},
-  totalLibre: 0,
+  slots: DEFAULT_SLOTS, // Inicializar con los 10 slots predefinidos
+  totalLibre: 10,
   totalOcupado: 0,
   entradaLibre: true,
   ultimoSensorCm: null,

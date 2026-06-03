@@ -41,12 +41,20 @@ interface ParkingSlot {
 
 // --- Mock Data ---
 const INITIAL_SLOTS: ParkingSlot[] = [
-  { id: "A-01", type: "Admin", status: "Fixed" },
-  { id: "A-02", type: "Admin", status: "Fixed" },
-  { id: "A-03", type: "Admin", status: "Occupied" },
-  { id: "B-12", type: "Standard", status: "Occupied" },
-  { id: "B-13", type: "Standard", status: "Available" },
-  { id: "V-05", type: "VIP", status: "Occupied" },
+  // Carros (C-01 a C-04)
+  { id: "C-01", type: "Standard", status: "Available" },
+  { id: "C-02", type: "Standard", status: "Available" },
+  { id: "C-03", type: "Standard", status: "Occupied" },
+  { id: "C-04", type: "Standard", status: "Available" },
+  // Motos (M-01 a M-03)
+  { id: "M-01", type: "Standard", status: "Occupied" },
+  { id: "M-02", type: "Standard", status: "Available" },
+  { id: "M-03", type: "Standard", status: "Available" },
+  // Bicicletas (B-01, B-02)
+  { id: "B-01", type: "Standard", status: "Available" },
+  { id: "B-02", type: "Standard", status: "Occupied" },
+  // VIP (V-01)
+  { id: "V-01", type: "VIP", status: "Fixed" },
 ];
 
 const ALERTS = [

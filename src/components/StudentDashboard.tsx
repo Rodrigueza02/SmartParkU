@@ -34,18 +34,16 @@ interface ParkingSpot {
 }
 
 const INITIAL_SPOTS: ParkingSpot[] = [
-  { id: 'A1', status: 'available', type: 'car', label: 'C-01' },
-  { id: 'A2', status: 'occupied', type: 'car', label: 'C-02' },
-  { id: 'A3', status: 'vip', type: 'car', label: 'V-01' },
-  { id: 'B1', status: 'available', type: 'moto', label: 'M-01' },
-  { id: 'B2', status: 'available', type: 'moto', label: 'M-02' },
-  { id: 'B3', status: 'occupied', type: 'moto', label: 'M-03' },
-  { id: 'C1', status: 'available', type: 'scooter', label: 'S-01' },
-  { id: 'C2', status: 'vip', type: 'scooter', label: 'V-02' },
-  { id: 'C3', status: 'available', type: 'car', label: 'C-03' },
-  { id: 'D1', status: 'occupied', type: 'car', label: 'C-04' },
-  { id: 'D2', status: 'available', type: 'car', label: 'C-05' },
-  { id: 'D3', status: 'available', type: 'car', label: 'C-06' },
+  { id: 'C-01', status: 'available', type: 'car', label: 'C-01' },
+  { id: 'C-02', status: 'available', type: 'car', label: 'C-02' },
+  { id: 'C-03', status: 'available', type: 'car', label: 'C-03' },
+  { id: 'C-04', status: 'available', type: 'car', label: 'C-04' },
+  { id: 'M-01', status: 'available', type: 'moto', label: 'M-01' },
+  { id: 'M-02', status: 'available', type: 'moto', label: 'M-02' },
+  { id: 'M-03', status: 'available', type: 'moto', label: 'M-03' },
+  { id: 'B-01', status: 'available', type: 'scooter', label: 'B-01' },
+  { id: 'B-02', status: 'available', type: 'scooter', label: 'B-02' },
+  { id: 'V-01', status: 'vip', type: 'car', label: 'V-01' },
 ];
 
 const StudentDashboard = ({ user }: { user: any }) => {
