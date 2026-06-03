@@ -72,6 +72,7 @@ const USAGE_DATA = [
 
 const AdminHeader = () => {
   const logout = useAuthStore((state) => state.logout);
+  const user = useAuthStore((state) => state.user);
   const router = useRouter();
   const handleLogout = () => { logout(); router.push("/"); };
 
@@ -90,10 +91,10 @@ const AdminHeader = () => {
         <div>
           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Panel de Gestión</p>
           <h1 className="text-xl font-black" style={{ color: '#1E3A5F' }}>
-            Hola, <span style={{ color: '#00AEEF' }}>Admin Jiliana</span>
+            Hola, <span style={{ color: '#00AEEF' }}>{user?.nombre || 'Administrador'}</span>
           </h1>
           <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
-            Mantenimiento / Gestión
+            {user?.rol || 'Administrador'}
           </span>
         </div>
       </div>
