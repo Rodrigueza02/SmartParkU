@@ -332,6 +332,22 @@ const AdminMapWidget = () => {
 };
 
 export default function AdminDashboard() {
+  const { token, user } = useAuthStore();
+  const router = useRouter();
+
+  // Protección de ruta: si no hay sesión o no es admin, redirigir al login
+  useEffect(() => {
+    if (!token || !user) {
+      router.push("/");
+      return;
+    }
+    if (user.rol !== "SuperAdmin" && user.rol !== "Administrativo") {
+      router.push("/");
+    }
+  }, [token, user, router]);
+
+  if (!token || !user) return null;
+
   return (
     <div className="min-h-screen pb-24 font-sans" style={{ background: '#F4FBFF', color: '#1E3A5F' }}>
       <AdminHeader />

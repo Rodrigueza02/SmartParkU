@@ -7,6 +7,8 @@ import ParkingIllustration from "@/components/ParkingIllustration";
 import UCCSwitch from "@/components/UCCSwitch";
 import StudentDashboard from "@/components/StudentDashboard";
 import { useAuthStore } from "@/store/authStore";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function LoginPage() {
   const [correo, setCorreo] = useState("");
@@ -15,6 +17,15 @@ export default function LoginPage() {
   const [error, setError] = useState("");
 
   const { token, user, setAuth } = useAuthStore();
+  const router = useRouter();
+
+  // Redirigir según rol después del login
+  useEffect(() => {
+    if (!token || !user) return;
+    if (user.rol === "SuperAdmin" || user.rol === "Administrativo") {
+      router.push("/admin/dashboard");
+    }
+  }, [token, user, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +48,20 @@ export default function LoginPage() {
     }
   };
 
+  // Estudiante → dashboard embebido en la misma página
   if (token && user?.rol === "Estudiante") return <StudentDashboard user={user} />;
+
+  // Admin/SuperAdmin → useEffect ya hizo el push, mostrar loader mientras redirige
+  if (token && (user?.rol === "SuperAdmin" || user?.rol === "Administrativo")) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#F4FBFF' }}>
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-10 h-10 animate-spin" style={{ color: '#00AEEF' }} />
+          <p className="text-sm font-bold" style={{ color: '#1E3A5F' }}>Entrando al panel de administración...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen flex">

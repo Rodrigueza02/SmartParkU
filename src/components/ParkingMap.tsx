@@ -25,10 +25,18 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
   const [activeFilter, setActiveFilter] = useState<SlotType | "todos">("todos");
   const [selectedSlot, setSelectedSlot] = useState<ParkingSlot | null>(null);
 
-  // Conectar al WebSocket al montar
+  // Conectar al WebSocket al montar — delay para evitar el doble-mount de React 18 StrictMode
   useEffect(() => {
-    connect();
-    return () => disconnect();
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      if (!cancelled) connect();
+    }, 100);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      disconnect();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ─── Convertir el Record<string, ParkingSlot> a arrays por tipo ──────────────
@@ -58,6 +66,9 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
   const SlotBox = ({ slot }: { slot: ParkingSlot }) => {
     const isFiltered = activeFilter !== "todos" && activeFilter !== slot.tipo;
     const isFree     = slot.status === "libre";
+    const isVip      = slot.tipo === "vip";
+
+    const bgColor = !isFree ? '#ef4444' : isVip ? '#B5D334' : '#6AB023';
 
     return (
       <motion.div
@@ -66,19 +77,29 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
         animate={{ opacity: isFiltered ? 0.15 : 1, scale: 1, transition: { duration: 0.4 } }}
         whileTap={isFree ? { scale: 0.93 } : {}}
         onClick={() => isFree && setSelectedSlot(slot)}
-        className={`relative cursor-pointer rounded-lg border-2 border-white shadow-sm flex flex-col items-center justify-center transition-colors duration-500
-          ${slot.tipo === "carro" ? "h-14 w-10" : "h-8 w-7"}
-        `}
-        style={{ background: isFree ? '#6AB023' : '#ef4444' }}
-        title={`Cajón ${slot.slot} — ${slot.status}${slot.distancia_cm ? ` (${slot.distancia_cm} cm)` : ""}`}
+        className="relative cursor-pointer rounded-lg border-2 border-white shadow-sm flex flex-col items-center justify-center transition-colors duration-500"
+        style={{
+          background: bgColor,
+          height: slot.tipo === "carro" || isVip ? '3.5rem' : '2rem',
+          width:  slot.tipo === "carro" || isVip ? '2.5rem' : '1.75rem',
+        }}
+        title={`${slot.label || slot.slot} — ${slot.status}${slot.distancia_cm ? ` (${slot.distancia_cm} cm)` : ""}`}
       >
-        <span className="text-[8px] font-bold text-white opacity-80">{slot.slot}</span>
+        <span className="text-[8px] font-bold text-white opacity-90 leading-tight text-center px-0.5">
+          {slot.label || slot.slot}
+        </span>
+        {isVip && isFree && (
+          <span className="text-[7px] text-white/80 font-black">★</span>
+        )}
         {!isFree && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg"
           >
-            {slot.tipo === "carro" ? <Car size={12} className="text-white/60" /> : <Bike size={10} className="text-white/60" />}
+            {slot.tipo === "carro" || isVip
+              ? <Car  size={12} className="text-white/60" />
+              : <Bike size={10} className="text-white/60" />
+            }
           </motion.div>
         )}
       </motion.div>
@@ -210,7 +231,7 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
 
         {/* Leyenda */}
         <div className="mt-8 flex justify-between items-center">
-          <div className="flex gap-4 items-center">
+          <div className="flex gap-3 items-center flex-wrap">
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full" style={{ background: '#6AB023' }} />
               <span className="text-[9px] text-gray-400 font-medium">Libre</span>
@@ -218,6 +239,10 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
               <span className="text-[9px] text-gray-400 font-medium">Ocupado</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full" style={{ background: '#B5D334' }} />
+              <span className="text-[9px] text-gray-400 font-medium">VIP ★ Reservable</span>
             </div>
           </div>
           {timestamp && (
@@ -237,68 +262,116 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedSlot(null)}
-              className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-40"
+              className="fixed inset-0 bg-black/30 backdrop-blur-[2px] z-40"
             />
             <motion.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[40px] p-8 z-50 shadow-2xl"
+              className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[40px] z-50 shadow-2xl"
+              style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 100px)' }}
             >
-              <div className="w-12 h-1.5 bg-gray-100 rounded-full mx-auto mb-8" />
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-3 bg-[#A3E4D7]/20 rounded-2xl text-[#70C1B3]">
-                      {selectedSlot.tipo === "carro" ? (
-                        <Car size={24} />
-                      ) : (
-                        <Bike size={24} />
-                      )}
+              {/* Handle */}
+              <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-4 mb-6" />
+
+              <div className="px-8 pb-8">
+                {/* Header del cajón */}
+                <div className="flex items-start justify-between mb-5">
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div
+                        className="p-3 rounded-2xl"
+                        style={{
+                          background: selectedSlot.tipo === 'vip' ? '#B5D33420' : '#00AEEF15',
+                          color:      selectedSlot.tipo === 'vip' ? '#6AB023'   : '#00AEEF',
+                        }}
+                      >
+                        {selectedSlot.tipo === "carro" || selectedSlot.tipo === "vip"
+                          ? <Car size={24} />
+                          : <Bike size={24} />
+                        }
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-black" style={{ color: '#1E3A5F' }}>
+                          {selectedSlot.label || selectedSlot.slot}
+                        </h2>
+                        <p className="text-gray-400 text-sm capitalize">
+                          Tipo: {selectedSlot.tipo}
+                          {selectedSlot.distancia_cm ? ` · ${selectedSlot.distancia_cm} cm` : ""}
+                        </p>
+                      </div>
                     </div>
+
+                    {/* Badge de estado */}
+                    {selectedSlot.tipo === 'vip' ? (
+                      <span
+                        className="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider"
+                        style={{ background: '#B5D33425', color: '#6AB023', border: '1px solid #B5D33440' }}
+                      >
+                        ⭐ VIP — Reservable
+                      </span>
+                    ) : (
+                      <span
+                        className="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider"
+                        style={{ background: '#00AEEF12', color: '#00AEEF', border: '1px solid #00AEEF25' }}
+                      >
+                        Disponible — Solo uso directo
+                      </span>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => setSelectedSlot(null)}
+                    className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    <X size={20} className="text-gray-400" />
+                  </button>
+                </div>
+
+                {/* Info / acción según tipo */}
+                {selectedSlot.tipo === 'vip' ? (
+                  /* ── Slot VIP: permite reservar ── */
+                  <>
+                    <div
+                      className="rounded-2xl p-4 mb-5 flex gap-3 items-start border"
+                      style={{ background: '#B5D33412', borderColor: '#B5D33430' }}
+                    >
+                      <Info size={18} style={{ color: '#6AB023', flexShrink: 0, marginTop: 2 }} />
+                      <p className="text-sm font-medium" style={{ color: '#1E3A5F' }}>
+                        Este es un cupo <span className="font-black" style={{ color: '#6AB023' }}>VIP reservable</span>.
+                        Puedes asegurarlo para mitigar tu huella de CO₂ y garantizar tu espacio en el campus.
+                      </p>
+                    </div>
+                    <button
+                      className="w-full text-white font-black py-4 rounded-2xl transition-all active:scale-[0.98] text-base"
+                      style={{
+                        background: 'linear-gradient(135deg, #6AB023, #00AEEF)',
+                        boxShadow: '0 8px 24px rgba(0,174,239,0.3)',
+                      }}
+                    >
+                      Reservar Cupo VIP
+                    </button>
+                  </>
+                ) : (
+                  /* ── Slot normal: solo info, no se puede reservar ── */
+                  <div
+                    className="rounded-2xl p-4 flex gap-3 items-start border"
+                    style={{ background: '#f8fafc', borderColor: '#e2e8f0' }}
+                  >
+                    <Info size={18} className="text-gray-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <h2 className="text-xl font-bold text-gray-800">
-                        Cajón {selectedSlot.slot}
-                      </h2>
-                      <p className="text-gray-400 text-sm capitalize">
-                        Tipo: {selectedSlot.tipo}
-                        {selectedSlot.distancia_cm
-                          ? ` · ${selectedSlot.distancia_cm} cm`
-                          : ""}
+                      <p className="text-sm font-bold text-gray-700 mb-0.5">
+                        Espacio de uso directo
+                      </p>
+                      <p className="text-xs text-gray-400 leading-relaxed">
+                        Este cajón no es reservable. Dirígete al parqueadero y ocupa
+                        el espacio disponible. Solo los cupos <span className="font-bold" style={{ color: '#6AB023' }}>VIP</span> permiten reserva anticipada.
                       </p>
                     </div>
                   </div>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#A3E4D7]/20 text-[#70C1B3] text-[10px] font-bold rounded-full uppercase tracking-wider">
-                    Disponible
-                  </span>
-                </div>
-                <button
-                  onClick={() => setSelectedSlot(null)}
-                  className="p-2 hover:bg-gray-50 rounded-full transition-colors"
-                >
-                  <X size={20} className="text-gray-400" />
-                </button>
+                )}
               </div>
-
-              <div className="bg-gray-50 rounded-3xl p-6 mb-8 border border-gray-100">
-                <div className="flex gap-4 items-center">
-                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
-                    <Info size={18} className="text-[#70C1B3]" />
-                  </div>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    ¿Deseas asegurar tu espacio para mitigar la huella de{" "}
-                    <span className="font-bold text-[#70C1B3]">CO₂</span>?
-                  </p>
-                </div>
-              </div>
-
-              <button
-                className="w-full text-white font-bold py-5 rounded-[24px] shadow-lg transition-all active:scale-[0.98]"
-                style={{ background: 'linear-gradient(135deg, #6AB023, #00AEEF)', boxShadow: '0 8px 24px rgba(0,174,239,0.3)' }}
-              >
-                Reservar Cupo
-              </button>
             </motion.div>
           </>
         )}
