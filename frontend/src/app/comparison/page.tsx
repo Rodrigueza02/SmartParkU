@@ -19,7 +19,6 @@ import {
 // --- Sub-componente: Pantalla Visitante ---
 const VisitorScreen = () => (
   <div className="flex flex-col h-full bg-[#F9FBFA] text-gray-800 font-sans p-6 rounded-[3rem] border-[8px] border-gray-900 shadow-2xl overflow-hidden relative">
-    {/* Status Bar Simulado */}
     <div className="flex justify-between items-center mb-8 px-2">
       <span className="text-xs font-bold">9:41</span>
       <div className="flex gap-1">
@@ -28,7 +27,6 @@ const VisitorScreen = () => (
       </div>
     </div>
 
-    {/* Header */}
     <header className="mb-8">
       <motion.h1 
         initial={{ opacity: 0, y: -10 }}
@@ -47,13 +45,11 @@ const VisitorScreen = () => (
       </motion.p>
     </header>
 
-    {/* Mapa Simplificado */}
     <div className="flex-1 flex flex-col gap-6">
       <div className="relative h-48 bg-gray-100 rounded-3xl overflow-hidden border border-gray-200">
         <div className="absolute inset-0 flex items-center justify-center">
           <MapIcon className="w-12 h-12 text-gray-300" />
         </div>
-        {/* Zona de Cortesía */}
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -66,7 +62,6 @@ const VisitorScreen = () => (
         </motion.div>
       </div>
 
-      {/* Botón Principal */}
       <motion.button 
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
@@ -77,7 +72,6 @@ const VisitorScreen = () => (
       </motion.button>
     </div>
 
-    {/* Footer Link */}
     <footer className="mt-auto pt-6 text-center">
       <button className="text-mint-solid text-sm font-medium hover:underline transition-all">
         Registrarse como Estudiante UCC
@@ -99,13 +93,11 @@ const AdminScreen = () => {
 
   return (
     <div className="flex flex-col h-full bg-white text-gray-900 font-sans p-6 rounded-[3rem] border-[8px] border-gray-900 shadow-2xl overflow-hidden relative">
-      {/* Status Bar */}
       <div className="flex justify-between items-center mb-6 px-2">
         <span className="text-xs font-bold">9:41</span>
         <div className="flex gap-1 italic text-[10px] text-mint-solid font-bold">SUPER ADMIN</div>
       </div>
 
-      {/* Header */}
       <header className="mb-6 flex items-center gap-3">
         <div className="w-12 h-12 bg-mint-pastel rounded-full flex items-center justify-center">
           <UserCircle className="w-8 h-8 text-mint-solid" />
@@ -116,7 +108,6 @@ const AdminScreen = () => {
         </div>
       </header>
 
-      {/* Dashboard Grid */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         {widgets.map((w) => (
           <motion.button
@@ -134,11 +125,7 @@ const AdminScreen = () => {
         ))}
       </div>
 
-      {/* Mapa Avanzado */}
       <div className="flex-1 relative bg-slate-900 rounded-3xl overflow-hidden mb-4 border-2 border-mint-solid/30">
-        <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
-        
-        {/* Capas de Datos */}
         <div className="absolute top-4 left-4 right-4 flex justify-between">
           <div className="flex gap-2">
             <div className="px-2 py-1 bg-mint-solid/90 text-white text-[8px] rounded-md flex items-center gap-1">
@@ -150,7 +137,6 @@ const AdminScreen = () => {
           </div>
         </div>
 
-        {/* Indicadores de Sensores (Ultrasónicos) */}
         {[1, 2, 3, 4, 5].map((i) => (
           <motion.div
             key={i}
@@ -169,7 +155,6 @@ const AdminScreen = () => {
         </div>
       </div>
 
-      {/* Botón de Acción Crítica */}
       <motion.button 
         whileHover={{ scale: 1.02, backgroundColor: '#EF4444', color: '#fff' }}
         whileTap={{ scale: 0.98 }}
@@ -179,7 +164,6 @@ const AdminScreen = () => {
         Sanciones / Bloqueos (RF15)
       </motion.button>
       
-      {/* Animación de Transición de Widget */}
       <AnimatePresence>
         {activeWidget && (
           <motion.div
@@ -213,7 +197,6 @@ const AdminScreen = () => {
   );
 };
 
-// --- Página Principal de Comparación ---
 export default function ComparisonPage() {
   return (
     <main className="min-h-screen bg-lightGray p-12 flex flex-col items-center">
@@ -226,7 +209,6 @@ export default function ComparisonPage() {
       </div>
 
       <div className="flex flex-wrap justify-center gap-16 items-start">
-        {/* Columna Izquierda: Visitante */}
         <div className="flex flex-col items-center gap-6">
           <div className="w-[380px] h-[780px]">
             <VisitorScreen />
@@ -237,7 +219,6 @@ export default function ComparisonPage() {
           </div>
         </div>
 
-        {/* Columna Derecha: Admin */}
         <div className="flex flex-col items-center gap-6">
           <div className="w-[380px] h-[780px]">
             <AdminScreen />
@@ -249,7 +230,6 @@ export default function ComparisonPage() {
         </div>
       </div>
 
-      {/* Leyenda Técnica */}
       <section className="mt-20 max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-8 bg-white p-8 rounded-3xl shadow-xl border border-mint-pastel/30">
         <div>
           <h3 className="font-bold text-lg mb-4 flex items-center gap-2">

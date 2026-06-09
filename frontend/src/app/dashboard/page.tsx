@@ -28,6 +28,5 @@ export default function DashboardPage() {
   }
 
   // Si el rol es Estudiante, mostramos el dashboard especializado
-  // (En el futuro podrías añadir un switch para otros roles aquí)
   return <StudentDashboard user={user} />;
 }

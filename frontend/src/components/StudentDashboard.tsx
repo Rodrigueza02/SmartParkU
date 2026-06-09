@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
-  Leaf, Car, Bike, Zap, AlertTriangle, ChevronRight,
-  User, MapPin, Clock, Navigation, LogOut, Calendar, ShieldAlert
+  Leaf, Car, Bike, Zap, AlertTriangle,
+  User, MapPin, LogOut, Calendar, ShieldAlert
 } from 'lucide-react';
 import UCCSwitch from '@/components/UCCSwitch';
 import StudentProfile from '@/components/StudentProfile';
@@ -21,19 +21,6 @@ interface ParkingSpot {
   label: string;
 }
 
-const INITIAL_SPOTS: ParkingSpot[] = [
-  { id: 'slot_01', status: 'available',  type: 'car',    label: 'C-01' },
-  { id: 'slot_02', status: 'occupied',   type: 'car',    label: 'C-02' },
-  { id: 'slot_03', status: 'vip',        type: 'car',    label: 'C-03' },
-  { id: 'slot_04', status: 'available',  type: 'car',    label: 'C-04' },
-  { id: 'slot_05', status: 'available',  type: 'moto',   label: 'M-01' },
-  { id: 'slot_06', status: 'occupied',   type: 'moto',   label: 'M-02' },
-  { id: 'slot_07', status: 'available',  type: 'moto',   label: 'M-03' },
-  { id: 'slot_08', status: 'available',  type: 'scooter',label: 'B-01' },
-  { id: 'slot_09', status: 'occupied',   type: 'scooter',label: 'B-02' },
-  { id: 'slot_10', status: 'vip',        type: 'car',    label: 'V-01' },
-];
-
 const UCC = {
   green: '#6AB023',
   blue:  '#00AEEF',
@@ -44,29 +31,18 @@ const UCC = {
 
 const StudentDashboard = ({ user }: { user: any }) => {
   const logout = useAuthStore((state) => state.logout);
-  const [spots, setSpots] = useState<ParkingSpot[]>(INITIAL_SPOTS);
-  const [filter, setFilter] = useState<VehicleType | 'all'>('all');
   const [co2Saved, setCo2Saved] = useState(1240);
   const [view, setView] = useState<'map' | 'profile' | 'reservations' | 'panic' | 'history'>('map');
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setSpots(current =>
-        current.map(spot => {
-          if (Math.random() > 0.92) {
-            const newStatus: SpotStatus = Math.random() > 0.5 ? 'available' : 'occupied';
-            return { ...spot, status: spot.status === 'vip' ? 'vip' : newStatus };
-          }
-          return spot;
-        })
-      );
       setCo2Saved(prev => prev + Math.floor(Math.random() * 2));
     }, 5000);
     return () => clearInterval(interval);
   }, []);
 
   const navigationItems = [
-    { id: 'map',          label: 'MAPA',     icon: Navigation },
+    { id: 'map',          label: 'MAPA',     icon: MapPin },
     { id: 'reservations', label: 'RESERVAS', icon: Calendar },
     { id: 'panic',        label: 'PÁNICO',   icon: ShieldAlert, color: 'text-red-400' },
     { id: 'history',      label: 'GREEN',    icon: Leaf },
@@ -180,13 +156,8 @@ const StudentDashboard = ({ user }: { user: any }) => {
                 <motion.button
                   key={type.id}
                   whileTap={{ scale: 0.94 }}
-                  onClick={() => setFilter(type.id as any)}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-2xl whitespace-nowrap text-sm font-bold transition-all duration-200"
-                  style={
-                    filter === type.id
-                      ? { background: UCC.navy, color: '#fff', boxShadow: '0 4px 14px rgba(30,58,95,0.25)' }
-                      : { background: '#fff', color: '#94a3b8', border: '1.5px solid #e2e8f0' }
-                  }
+                  style={{ background: '#fff', color: '#94a3b8', border: '1.5px solid #e2e8f0' }}
                 >
                   <type.icon size={16} />
                   {type.label}
@@ -279,7 +250,7 @@ const StudentDashboard = ({ user }: { user: any }) => {
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          className="w-13 h-13 bg-white rounded-full shadow-xl flex items-center justify-center border border-red-100 text-red-400 w-12 h-12"
+          className="w-12 h-12 bg-white rounded-full shadow-xl flex items-center justify-center border border-red-100 text-red-400"
         >
           <AlertTriangle size={22} />
         </motion.button>
@@ -298,15 +269,11 @@ const StudentDashboard = ({ user }: { user: any }) => {
               whileTap={{ scale: 0.88 }}
               onClick={() => setView(item.id as any)}
               className="flex flex-col items-center gap-1 transition-all"
-              style={{ color: isActive ? UCC.blue : item.color ? '#f87171' : '#94a3b8' }}
+              style={{ color: isActive ? UCC.blue : (item as any).color ? '#f87171' : '#94a3b8' }}
             >
               <div
                 className="p-2 rounded-2xl transition-all"
-                style={
-                  isActive
-                    ? { background: `${UCC.blue}15` }
-                    : { background: 'transparent' }
-                }
+                style={isActive ? { background: `${UCC.blue}15` } : { background: 'transparent' }}
               >
                 <item.icon size={21} strokeWidth={isActive ? 2.5 : 1.8} />
               </div>

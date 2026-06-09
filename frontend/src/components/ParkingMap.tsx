@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Car, Bike, Info, X, MapPin, Wifi, WifiOff, Loader2 } from "lucide-react";
-import { useParkingStore, ParkingSlot, VehicleType } from "@/store/parkingStore";
+import { useParkingStore, ParkingSlot } from "@/store/parkingStore";
 
 type SlotType = "carro" | "moto" | "bicicleta";
 
@@ -39,15 +39,11 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ─── Convertir el Record<string, ParkingSlot> a arrays por tipo ──────────────
   const allSlots = Object.values(slots);
-
-  // Si no hay datos del backend todavía, usar layout estático de UCC
   const carSlots     = allSlots.filter(s => s.tipo === "carro");
   const motoSlots    = allSlots.filter(s => s.tipo === "moto");
   const bikeSlots    = allSlots.filter(s => s.tipo === "bicicleta");
 
-  // ─── Componentes internos ─────────────────────────────────────────────────
   const FilterChip = ({ type, label, icon: Icon }: { type: SlotType | "todos"; label: string; icon: React.ElementType }) => (
     <button
       onClick={() => setActiveFilter(type)}
@@ -67,7 +63,6 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
     const isFiltered = activeFilter !== "todos" && activeFilter !== slot.tipo;
     const isFree     = slot.status === "libre";
     const isVip      = slot.tipo === "vip";
-
     const bgColor = !isFree ? '#ef4444' : isVip ? '#B5D334' : '#6AB023';
 
     return (
@@ -106,7 +101,6 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
     );
   };
 
-  // ─── Badge de estado de conexión ──────────────────────────────────────────
   const ConnectionBadge = () => {
     const configs = {
       connected:    { icon: Wifi,    color: "text-emerald-500", label: "En vivo" },
@@ -125,7 +119,6 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
 
   return (
     <div className={`${embedded ? "" : "min-h-screen bg-lightGray p-6"} font-sans select-none`}>
-      {/* Header (solo si no está embebido) */}
       {!embedded && (
         <div className="max-w-md mx-auto mb-8">
           <div className="flex justify-between items-start mb-6">
@@ -144,7 +137,6 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
         </div>
       )}
 
-      {/* Mapa */}
       <div
         className={`${
           embedded ? "w-full" : "max-w-4xl mx-auto"
@@ -165,7 +157,6 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
           <ConnectionBadge />
         </div>
 
-        {/* Si no hay datos todavía */}
         {allSlots.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 gap-3 text-slate-300">
             <Loader2 size={32} className="animate-spin" />
@@ -180,7 +171,6 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
 
         {allSlots.length > 0 && (
           <>
-            {/* Zona motos + bicicletas */}
             <div className="flex justify-between mb-8 gap-4 max-w-2xl mx-auto">
               <div className="flex-1">
                 <h3 className="text-[9px] uppercase tracking-wider text-gray-400 mb-2 font-bold">
@@ -200,7 +190,6 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
               </div>
             </div>
 
-            {/* Zona carros (2 filas) */}
             <div className="relative max-w-2xl mx-auto">
               <div className="absolute left-1/2 top-0 bottom-0 w-8 -translate-x-1/2 bg-gray-50/50 flex items-center justify-center">
                 <div className="h-full w-px border-l-2 border-dashed border-gray-200" />
@@ -217,19 +206,10 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
                   ))}
                 </div>
               </div>
-              <div className="absolute -bottom-4 right-0 flex flex-col items-end gap-1 opacity-20">
-                <div className="flex items-center gap-1">
-                  <span className="text-[7px] font-bold tracking-widest text-gray-400">
-                    ENTRADA / SALIDA
-                  </span>
-                  <div className="w-3 h-3 border-t-2 border-l-2 border-gray-400 rotate-[135deg]" />
-                </div>
-              </div>
             </div>
           </>
         )}
 
-        {/* Leyenda */}
         <div className="mt-8 flex justify-between items-center">
           <div className="flex gap-3 items-center flex-wrap">
             <div className="flex items-center gap-1.5">
@@ -253,7 +233,6 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
         </div>
       </div>
 
-      {/* Bottom Sheet al seleccionar cajón */}
       <AnimatePresence>
         {selectedSlot && (
           <>
@@ -272,11 +251,8 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
               className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[40px] z-50 shadow-2xl"
               style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 100px)' }}
             >
-              {/* Handle */}
               <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-4 mb-6" />
-
               <div className="px-8 pb-8">
-                {/* Header del cajón */}
                 <div className="flex items-start justify-between mb-5">
                   <div>
                     <div className="flex items-center gap-3 mb-2">
@@ -302,8 +278,6 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
                         </p>
                       </div>
                     </div>
-
-                    {/* Badge de estado */}
                     {selectedSlot.tipo === 'vip' ? (
                       <span
                         className="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider"
@@ -320,7 +294,6 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
                       </span>
                     )}
                   </div>
-
                   <button
                     onClick={() => setSelectedSlot(null)}
                     className="p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -329,9 +302,7 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
                   </button>
                 </div>
 
-                {/* Info / acción según tipo */}
                 {selectedSlot.tipo === 'vip' ? (
-                  /* ── Slot VIP: permite reservar ── */
                   <>
                     <div
                       className="rounded-2xl p-4 mb-5 flex gap-3 items-start border"
@@ -354,16 +325,13 @@ const ParkingMap = ({ embedded = false }: ParkingMapProps) => {
                     </button>
                   </>
                 ) : (
-                  /* ── Slot normal: solo info, no se puede reservar ── */
                   <div
                     className="rounded-2xl p-4 flex gap-3 items-start border"
                     style={{ background: '#f8fafc', borderColor: '#e2e8f0' }}
                   >
                     <Info size={18} className="text-gray-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-bold text-gray-700 mb-0.5">
-                        Espacio de uso directo
-                      </p>
+                      <p className="text-sm font-bold text-gray-700 mb-0.5">Espacio de uso directo</p>
                       <p className="text-xs text-gray-400 leading-relaxed">
                         Este cajón no es reservable. Dirígete al parqueadero y ocupa
                         el espacio disponible. Solo los cupos <span className="font-bold" style={{ color: '#6AB023' }}>VIP</span> permiten reserva anticipada.

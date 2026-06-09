@@ -65,27 +65,16 @@ export default function ParkingIllustration() {
         className="relative z-10 filter drop-shadow-[0_10px_15px_rgba(112,193,179,0.3)]"
       >
         <svg width="180" height="90" viewBox="0 0 180 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-          {/* Shadow beneath car */}
           <ellipse cx="90" cy="82" rx="70" ry="6" fill="black" fillOpacity="0.1" />
-          
-          {/* Main Body - Sleek Aerodynamic Shape */}
           <path d="M10 55C10 55 15 45 35 40C55 35 120 35 145 40C170 45 175 55 175 65C175 75 165 80 155 80H25C15 80 10 75 10 65V55Z" fill="#70C1B3" />
           <path d="M40 42C40 42 55 15 90 15C125 15 145 38 150 42H40Z" fill="#70C1B3" />
-          
-          {/* Glass / Cabin */}
           <path d="M50 40C50 40 62 20 90 20C118 20 135 38 140 40H50Z" fill="#E2E8F0" fillOpacity="0.4" />
           <path d="M92 20V40" stroke="#70C1B3" strokeWidth="1" strokeOpacity="0.3" />
-          
-          {/* Headlights Glow */}
           <circle cx="168" cy="58" r="4" fill="white">
             <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite" />
           </circle>
           <path d="M168 58L180 55V61L168 58Z" fill="white" fillOpacity="0.2" />
-
-          {/* Taillights */}
           <path d="M10 60H15V70H10V60Z" fill="#EF4444" fillOpacity="0.8" />
-          
-          {/* Wheels - Modern Rim Design */}
           <g className="animate-spin-slow">
             <circle cx="45" cy="75" r="12" fill="#1F2937" />
             <circle cx="45" cy="75" r="8" stroke="#9CA3AF" strokeWidth="2" strokeDasharray="4 2" />
@@ -96,8 +85,6 @@ export default function ParkingIllustration() {
             <circle cx="135" cy="75" r="8" stroke="#9CA3AF" strokeWidth="2" strokeDasharray="4 2" />
             <circle cx="135" cy="75" r="3" fill="#9CA3AF" />
           </g>
-
-          {/* Electric Charge Line / Accent */}
           <motion.path 
             d="M30 65H150" 
             stroke="white" 
@@ -107,12 +94,9 @@ export default function ParkingIllustration() {
             animate={{ pathLength: 1, opacity: 0.4 }}
             transition={{ duration: 2, repeat: Infinity }}
           />
-          
-          {/* EV Badge */}
           <path d="M158 72L162 72L160 76L164 76" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
 
-        {/* Floating Energy Particles around the car */}
         {[1, 2, 3].map((p) => (
           <motion.div
             key={p}

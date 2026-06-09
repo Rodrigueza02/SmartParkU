@@ -9,7 +9,6 @@ import {
   AlertTriangle, 
   PieChart, 
   User, 
-  Menu,
   Clock,
   ShieldAlert,
   ChevronRight,
@@ -31,7 +30,6 @@ function cn(...inputs: ClassValue[]) {
 
 // --- Tipos ---
 type SlotStatus = "Occupied" | "Fixed" | "Yielded" | "Available";
-type VehicleType = "Autos" | "Motos" | "Scooters";
 
 interface ParkingSlot {
   id: string;
@@ -41,17 +39,17 @@ interface ParkingSlot {
 
 // --- Mock Data ---
 const INITIAL_SLOTS: ParkingSlot[] = [
-  { id: "A-01", type: "Admin", status: "Fixed" },
-  { id: "A-02", type: "Admin", status: "Fixed" },
-  { id: "A-03", type: "Admin", status: "Occupied" },
+  { id: "A-01", type: "Admin",    status: "Fixed" },
+  { id: "A-02", type: "Admin",    status: "Fixed" },
+  { id: "A-03", type: "Admin",    status: "Occupied" },
   { id: "B-12", type: "Standard", status: "Occupied" },
   { id: "B-13", type: "Standard", status: "Available" },
-  { id: "V-05", type: "VIP", status: "Occupied" },
+  { id: "V-05", type: "VIP",      status: "Occupied" },
 ];
 
 const ALERTS = [
   { id: 1, type: "Security", message: "Intento de acceso no autorizado en Puerta Norte", time: "Hace 5 min", level: "Critical" },
-  { id: 2, type: "Time", message: "Vehículo ABC-123 ha excedido el tiempo límite", time: "Hace 12 min", level: "Warning" },
+  { id: 2, type: "Time",     message: "Vehículo ABC-123 ha excedido el tiempo límite",   time: "Hace 12 min", level: "Warning" },
 ];
 
 const USAGE_DATA = [
@@ -110,7 +108,6 @@ const AdminHeader = () => {
 };
 
 const UsageAnalysisWidget = () => {
-  const total = USAGE_DATA.reduce((acc, curr) => acc + curr.value, 0);
   let cumulativePercent = 0;
 
   return (
@@ -130,7 +127,6 @@ const UsageAnalysisWidget = () => {
       </div>
 
       <div className="flex flex-col md:flex-row items-center gap-8">
-        {/* Gráfico Circular Simplificado */}
         <div className="relative w-40 h-40">
           <svg viewBox="0 0 32 32" className="w-full h-full -rotate-90">
             {USAGE_DATA.map((item, i) => {
@@ -142,9 +138,7 @@ const UsageAnalysisWidget = () => {
               return (
                 <circle
                   key={i}
-                  cx="16"
-                  cy="16"
-                  r="12"
+                  cx="16" cy="16" r="12"
                   fill="transparent"
                   stroke={item.color}
                   strokeWidth="6"
@@ -273,9 +267,7 @@ const AdminMapWidget = () => {
                 className="absolute inset-0 bg-mint-solid/10"
               />
             )}
-            
             <span className="text-[10px] font-black tracking-wider uppercase opacity-60">#{slot.id}</span>
-            
             <div className={cn(
               "w-10 h-5 rounded-md",
               slot.status === 'Occupied' && "bg-red-200",
@@ -283,7 +275,6 @@ const AdminMapWidget = () => {
               slot.status === 'Yielded' && "bg-mint-solid shadow-[0_0_10px_rgba(112,193,179,0.5)]",
               slot.status === 'Available' && "bg-gray-200"
             )} />
-            
             <span className="text-[10px] font-black uppercase tracking-widest">{slot.type}</span>
           </motion.button>
         ))}
@@ -302,10 +293,7 @@ const AdminMapWidget = () => {
                 <h3 className="text-lg font-black text-gray-800">Cajón {selectedSlot.id}</h3>
                 <p className="text-xs text-gray-500">Estado actual: <span className="font-bold uppercase">{selectedSlot.status}</span></p>
               </div>
-              <button 
-                onClick={() => setSelectedSlot(null)}
-                className="text-gray-400 hover:text-gray-600 font-bold"
-              >✕</button>
+              <button onClick={() => setSelectedSlot(null)} className="text-gray-400 hover:text-gray-600 font-bold">✕</button>
             </div>
 
             {selectedSlot.type === "Admin" && selectedSlot.status === "Fixed" && (
@@ -335,15 +323,9 @@ export default function AdminDashboard() {
   const { token, user } = useAuthStore();
   const router = useRouter();
 
-  // Protección de ruta: si no hay sesión o no es admin, redirigir al login
   useEffect(() => {
-    if (!token || !user) {
-      router.push("/");
-      return;
-    }
-    if (user.rol !== "SuperAdmin" && user.rol !== "Administrativo") {
-      router.push("/");
-    }
+    if (!token || !user) { router.push("/"); return; }
+    if (user.rol !== "SuperAdmin" && user.rol !== "Administrativo") { router.push("/"); }
   }, [token, user, router]);
 
   if (!token || !user) return null;
@@ -353,16 +335,9 @@ export default function AdminDashboard() {
       <AdminHeader />
 
       <main className="px-6 py-8 flex flex-col gap-10 max-w-4xl mx-auto">
-        
-        {/* RF05: Análisis de Uso */}
         <UsageAnalysisWidget />
-
-        {/* RF09/RF13: Alertas del Sistema */}
         <AlertsWidget />
-
-        {/* RF01/RF32/RF04: Mapa de Gestión */}
         <AdminMapWidget />
-
       </main>
 
       {/* ── Bottom Nav ── */}

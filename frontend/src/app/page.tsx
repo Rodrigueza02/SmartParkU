@@ -188,7 +188,6 @@ export default function LoginPage() {
                     onChange={(e) => setCorreo(e.target.value)}
                     placeholder="ejemplo@ucc.edu.co"
                     className="w-full pl-11 pr-4 py-3.5 rounded-2xl text-sm font-medium text-gray-700 placeholder:text-gray-300 outline-none transition-all bg-gray-50 border-2 border-transparent"
-                    style={{ ["--tw-ring-color" as any]: "#00AEEF" }}
                     onFocus={(e) => { e.target.style.borderColor = "#00AEEF50"; e.target.style.background = "#fff"; }}
                     onBlur={(e) => { e.target.style.borderColor = "transparent"; e.target.style.background = "#f9fafb"; }}
                   />
