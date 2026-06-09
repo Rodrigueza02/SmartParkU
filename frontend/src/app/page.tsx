@@ -116,14 +116,15 @@ export default function LoginPage() {
 
         <div className="w-full max-w-sm relative z-10 flex flex-col gap-8">
 
-          {/* Ilustración + título (visible siempre) */}
+          {/* Ilustración + título (ilustración visible siempre, título solo en mobile) */}
           <section className="flex flex-col items-center text-center">
             <ParkingIllustration />
+            {/* En desktop (lg+) el panel azul izquierdo ya muestra el título — aquí solo mobile */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="mt-5"
+              className="mt-5 lg:hidden"
             >
               <h1 className="text-4xl font-black tracking-tighter">
                 <span style={{ color: "#6AB023" }}>Smart</span>
