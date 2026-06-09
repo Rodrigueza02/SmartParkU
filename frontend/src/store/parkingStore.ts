@@ -23,23 +23,7 @@ export interface ParkingSlot {
   updated_at:   string | null;
 }
 
-interface ParkingState {
-  slots:          Record<string, ParkingSlot>;
-  totalLibre:     number;
-  totalOcupado:   number;
-  entradaLibre:   boolean;
-  ultimoSensorCm: number | null;
-  timestamp:      string | null;
-
-  wsStatus: 'disconnected' | 'connecting' | 'connected' | 'error';
-  wsError:  string | null;
-
-  connect:      () => void;
-  disconnect:   () => void;
-  controlServo: (accion: 'abrir' | 'cerrar') => Promise<{ ok: boolean; error?: string }>;
-}
-
-// ─── Slots predefinidos UCC Pasto (fallback cuando el backend no está activo) ─
+// ─── Slots Predefinidos (10 slots fijos UCC Pasto) ───────────────────────────
 // Sincronizado con mqtt_client.SLOTS_DEFINICION del backend
 const SLOTS_FALLBACK: Record<string, ParkingSlot> = Object.fromEntries(
   [
@@ -58,6 +42,22 @@ const SLOTS_FALLBACK: Record<string, ParkingSlot> = Object.fromEntries(
     { slot: s.slot_id, label: s.label, status: 'libre' as SlotStatus, tipo: s.tipo, distancia_cm: null, updated_at: null },
   ])
 );
+
+interface ParkingState {
+  slots:          Record<string, ParkingSlot>;
+  totalLibre:     number;
+  totalOcupado:   number;
+  entradaLibre:   boolean;
+  ultimoSensorCm: number | null;
+  timestamp:      string | null;
+
+  wsStatus: 'disconnected' | 'connecting' | 'connected' | 'error';
+  wsError:  string | null;
+
+  connect:      () => void;
+  disconnect:   () => void;
+  controlServo: (accion: 'abrir' | 'cerrar') => Promise<{ ok: boolean; error?: string }>;
+}
 
 // ─── WebSocket singleton ──────────────────────────────────────────────────────
 let ws:             WebSocket | null = null;
