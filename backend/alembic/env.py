@@ -12,8 +12,7 @@ backend_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_dir))
 
 from app.db.base import Base
-from app.models.user import Usuario
-from app.models.parking import EspacioParqueo
+import app.models  # registers all models in Base.metadata via models/__init__.py
 from app.core.config import settings
 
 # this is the Alembic Config object, which provides
