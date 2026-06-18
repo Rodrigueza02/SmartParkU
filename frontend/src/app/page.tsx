@@ -39,8 +39,8 @@ export default function LoginPage() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || "Error al iniciar sesión");
-      const { access_token, nombre, rol, estado } = data;
-      setAuth(access_token, { nombre, rol, estado });
+      const { access_token, nombre, rol, estado, id_usuario } = data;
+      setAuth(access_token, { nombre, rol, estado, id_usuario });
     } catch (err: any) {
       setError(err.message || "Error al conectar con el servidor");
     } finally {

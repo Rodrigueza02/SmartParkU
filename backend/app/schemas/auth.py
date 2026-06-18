@@ -22,4 +22,5 @@ class TokenResponse(BaseModel):
     nombre: str
     rol: str
     estado: str
+    id_usuario: int
 

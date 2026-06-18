@@ -94,7 +94,7 @@
    - Click en "Iniciar sesión"
 
 2. **Explorar Dashboard Admin:**
-   - ✅ Verifica que aparezca "Hola, Admin Jiliana"
+   - ✅ Verifica que aparezca "Hola, Admin"
    - ✅ Verifica el mensaje "Panel de Gestión"
    - ✅ Verifica que aparezca rol "Mantenimiento / Gestión"
 

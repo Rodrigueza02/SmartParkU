@@ -30,6 +30,7 @@ class AuthService:
             token_type="bearer",
             nombre=user.nombre,
             rol=user.rol,
-            estado=user.estado
+            estado=user.estado,
+            id_usuario=user.id_usuario,
         )
 
