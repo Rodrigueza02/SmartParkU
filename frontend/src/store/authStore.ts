@@ -1,11 +1,11 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 export interface AuthUser {
   nombre: string;
   rol: string;
   estado: string;
-  id_usuario: number;   // viene del backend en el response de login
+  id_usuario: number;
 }
 
 interface AuthState {
@@ -23,6 +23,16 @@ export const useAuthStore = create<AuthState>()(
       setAuth: (token, user) => set({ token, user }),
       logout: () => set({ token: null, user: null }),
     }),
-    { name: 'smartparku-auth' }
+    {
+      name: 'smartparku-auth-v2',   // ← nombre nuevo = borra la caché vieja automáticamente
+      storage: createJSONStorage(() => localStorage),
+      // Si el usuario guardado no tiene id_usuario, forzar logout
+      onRehydrateStorage: () => (state) => {
+        if (state?.user && !state.user.id_usuario) {
+          state.token = null;
+          state.user = null;
+        }
+      },
+    }
   )
 );
