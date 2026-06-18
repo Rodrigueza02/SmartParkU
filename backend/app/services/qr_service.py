@@ -198,6 +198,8 @@ class QRService:
         self.db.refresh(espacio)
 
         # ── Propagar cambio al mapa en tiempo real ──────────────────────────
+        # Actualiza parking_state en memoria y hace broadcast por WebSocket
+        # para que el mapa refleje el cajón como ocupado instantáneamente.
         from app.mqtt_client import update_slot_status
         update_slot_status(espacio.slot_id, "ocupado")
 

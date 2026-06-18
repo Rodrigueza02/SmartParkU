@@ -174,6 +174,32 @@ def remove_ws_listener(queue: asyncio.Queue):
     ws_listeners.discard(queue)
 
 
+def update_slot_status(slot_id: str, status: str):
+    """
+    Actualiza el estado de un espacio en parking_state y lo transmite
+    por WebSocket a todos los clientes conectados al mapa.
+    Llamar desde qr_service después de escanear un QR.
+    """
+    now_str = datetime.utcnow().isoformat()
+    existing = parking_state["espacios"].get(slot_id)
+    if existing:
+        parking_state["espacios"][slot_id]["status"] = status
+        parking_state["espacios"][slot_id]["updated_at"] = now_str
+    else:
+        # slot no estaba en memoria (raro), lo inicializamos
+        parking_state["espacios"][slot_id] = {
+            "status": status,
+            "tipo": "carro",
+            "label": slot_id,
+            "distancia_cm": None,
+            "updated_at": now_str,
+        }
+    parking_state["timestamp"] = now_str
+    _recalculate_totals()
+    _broadcast_state()
+    logger.info(f"Slot {slot_id} actualizado a '{status}' via QR → broadcast WebSocket")
+
+
 def stop_mqtt():
     global _mqtt_client
     if _mqtt_client:

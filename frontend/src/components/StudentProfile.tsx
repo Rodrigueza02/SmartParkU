@@ -3,13 +3,14 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import {
-  User, Mail, Car, Leaf, Award, QrCode, ChevronLeft,
-  Settings, ShieldCheck, CreditCard, Zap, TrendingUp, AlertCircle
+  User, Mail, Car, Leaf, Award, ChevronLeft,
+  Settings, ShieldCheck, Zap, TrendingUp, AlertCircle, QrCode, ChevronRight
 } from 'lucide-react';
 
 interface StudentProfileProps {
   user: { nombre: string; rol: string; correo?: string };
   onBack?: () => void;
+  onGoToQR?: () => void;
 }
 
 const UCC = {
@@ -20,7 +21,7 @@ const UCC = {
   cyan:  '#00BCD4',
 };
 
-const StudentProfile = ({ user, onBack }: StudentProfileProps) => {
+const StudentProfile = ({ user, onBack, onGoToQR }: StudentProfileProps) => {
   const ecoData = { co2Saved: 1240, ecoPoints: 450, level: 'Sostenible Pro', progress: 75, streak: 12 };
   const vehicleData = { placa: 'UCC-2026', modelo: 'Mazda CX-30 / Eléctrico', tipo: 'Automóvil', color: 'Gris Polimetal', status: 'Validado LPR' };
 
@@ -206,42 +207,34 @@ const StudentProfile = ({ user, onBack }: StudentProfileProps) => {
           </div>
         </motion.section>
 
-        {/* ── QR de acceso ── */}
+        {/* ── Acceso QR — redirige al tab QR real ── */}
         <motion.section
           initial={{ scale: 0.96, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.35 }}
-          className="bg-white rounded-3xl p-8 flex flex-col items-center space-y-6 shadow-md"
+          className="bg-white rounded-3xl p-6 shadow-md"
           style={{ border: `1.5px solid ${UCC.blue}15` }}
         >
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <QrCode size={18} style={{ color: UCC.blue }} />
-              <h3 className="text-lg font-black" style={{ color: UCC.navy }}>Acceso Manual</h3>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2.5 rounded-2xl" style={{ background: `${UCC.blue}15` }}>
+              <QrCode size={20} style={{ color: UCC.blue }} />
             </div>
-            <p className="text-xs text-gray-400 font-medium max-w-[200px] mx-auto leading-relaxed">
-              Escanea en el lector UCC si el sistema LPR presenta fallas.
-            </p>
+            <div>
+              <h3 className="text-base font-black" style={{ color: UCC.navy }}>Acceso al Parqueadero</h3>
+              <p className="text-xs text-gray-400 font-medium">Genera tu QR de ingreso</p>
+            </div>
           </div>
-
-          <div
-            className="relative p-6 rounded-3xl cursor-pointer group transition-all duration-300 border-2 border-dashed"
-            style={{ background: '#f8fafc', borderColor: `${UCC.blue}30` }}
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={onGoToQR}
+            className="w-full py-4 text-white font-black rounded-2xl flex items-center justify-center gap-2"
+            style={{
+              background: `linear-gradient(135deg, ${UCC.green}, ${UCC.blue})`,
+              boxShadow: '0 6px 20px rgba(0,174,239,0.25)',
+            }}
           >
-            <QrCode size={160} style={{ color: UCC.navy }} className="group-hover:opacity-70 transition-opacity" />
-            <motion.div
-              animate={{ top: ['1.5rem', '11rem', '1.5rem'] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute left-6 right-6 h-0.5 z-10"
-              style={{ background: `linear-gradient(90deg, transparent, ${UCC.blue}, transparent)`, boxShadow: `0 0 12px ${UCC.blue}` }}
-            />
-          </div>
-
-          <div
-            className="flex items-center gap-3 px-5 py-2.5 rounded-2xl"
-            style={{ background: '#f1f5f9', border: '1px solid #e2e8f0' }}
-          >
-            <CreditCard size={16} className="text-gray-400" />
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">ID: 809244 - UCC 2026</span>
-          </div>
+            <QrCode size={18} />
+            Ir al Generador de QR
+            <ChevronRight size={16} />
+          </motion.button>
         </motion.section>
 
         {/* ── Emergencia ── */}
