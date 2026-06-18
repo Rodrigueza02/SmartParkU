@@ -7,23 +7,29 @@ from app.db import get_db
 from app.schemas import ParkingEstadoResponse
 from app.services import ParkingService
 from app.mqtt_client import parking_state, publish_servo, add_ws_listener, remove_ws_listener
+from app.core.security import get_current_user, require_roles
 
 router = APIRouter(prefix="/api/v1/parking", tags=["parking"])
 
+_any_auth   = Depends(get_current_user)
+_admin_only = Depends(require_roles("SuperAdmin", "Administrativo"))
 
-@router.get("/estado")
+
+@router.get("/estado", dependencies=[_any_auth])
 def get_parking_estado():
+    """Estado en tiempo real del parqueadero (desde memoria MQTT)."""
     return parking_state
 
 
-@router.get("/slots", response_model=ParkingEstadoResponse)
+@router.get("/slots", response_model=ParkingEstadoResponse, dependencies=[_any_auth])
 def get_parking_slots(db: Session = Depends(get_db)):
     parking_service = ParkingService(db)
     return parking_service.get_parking_slots()
 
 
-@router.post("/servo")
+@router.post("/servo", dependencies=[_admin_only])
 def control_servo(accion: str = "abrir"):
+    """Solo administradores pueden controlar la talanquera."""
     if accion not in ("abrir", "cerrar"):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -39,6 +45,10 @@ def control_servo(accion: str = "abrir"):
 
 @router.websocket("/ws/parking")
 async def websocket_parking(websocket: WebSocket):
+    """
+    WebSocket público — el frontend necesita conectarse antes del login
+    para mostrar disponibilidad. La autenticación se hace a nivel HTTP.
+    """
     await websocket.accept()
     queue: asyncio.Queue = asyncio.Queue(maxsize=20)
     add_ws_listener(queue)

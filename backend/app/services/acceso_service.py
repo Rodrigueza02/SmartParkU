@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.models.user import Usuario
 from app.models.vehiculo import Vehiculo
+from app.models.parking import EspacioParqueo
 from app.repositories.acceso_repository import AccesoRepository
 from app.schemas.acceso import AccesoCreate, AccesoUpdate, AccesoResponse
 
@@ -67,7 +68,6 @@ class AccesoService:
         if data.id_vehiculo is not None:
             self._get_vehiculo_or_404(data.id_vehiculo)
 
-        # Default hora_entrada to now if not provided
         hora_entrada = data.hora_entrada or datetime.now(timezone.utc).replace(tzinfo=None)
 
         acceso = self.acceso_repo.create(
@@ -77,6 +77,52 @@ class AccesoService:
             hora_entrada=hora_entrada,
             metodo=data.metodo,
         )
+        return AccesoResponse.model_validate(acceso)
+
+    def registrar_salida(self, id_acceso: int) -> AccesoResponse:
+        """
+        Registra la hora de salida del vehículo:
+          1. Valida que el acceso exista y no tenga ya hora_salida.
+          2. Pone hora_salida = ahora UTC.
+          3. Libera el EspacioParqueo en la BD (status = 'libre').
+          4. Propaga el cambio al mapa en tiempo real via WebSocket.
+        """
+        acceso = self._get_acceso_or_404(id_acceso)
+
+        if acceso.hora_salida is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Este acceso ya tiene registrada una hora de salida.",
+            )
+
+        hora_salida = datetime.now(timezone.utc).replace(tzinfo=None)
+
+        # Actualizar el acceso
+        acceso = self.acceso_repo.update(
+            acceso=acceso,
+            id_usuario=None,
+            id_vehiculo=None,
+            id_espacio=None,
+            hora_entrada=None,
+            hora_salida=hora_salida,
+            metodo=None,
+        )
+
+        # Liberar el espacio en la BD
+        if acceso.id_espacio is not None:
+            espacio = self.db.query(EspacioParqueo).filter(
+                EspacioParqueo.id == acceso.id_espacio
+            ).first()
+            if espacio:
+                espacio.status = "libre"
+                espacio.updated_at = datetime.now(timezone.utc)
+                self.db.commit()
+                self.db.refresh(espacio)
+
+                # Propagar al mapa en tiempo real
+                from app.mqtt_client import update_slot_status
+                update_slot_status(espacio.slot_id, "libre")
+
         return AccesoResponse.model_validate(acceso)
 
     def update(self, id_acceso: int, data: AccesoUpdate) -> AccesoResponse:

@@ -66,7 +66,7 @@ let reconnectDelay  = 3000;
 const MAX_DELAY     = 30_000;
 let intentionalClose = false;   // bandera para no reconectar cuando es un cierre limpio
 
-const WS_URL   = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws/parking';
+const WS_URL   = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/api/v1/parking/ws/parking';
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -171,8 +171,11 @@ export const useParkingStore = create<ParkingState>((set, get) => ({
 
   controlServo: async (accion: 'abrir' | 'cerrar') => {
     try {
+      // Obtener token del authStore para el header Authorization
+      const { token } = (await import('./authStore')).useAuthStore.getState();
       const res = await fetch(`${API_BASE}/api/v1/parking/servo?accion=${accion}`, {
         method: 'POST',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
       });
       if (!res.ok) {
         const err = await res.json();

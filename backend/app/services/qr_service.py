@@ -197,6 +197,10 @@ class QRService:
         self.db.refresh(acceso)
         self.db.refresh(espacio)
 
+        # ── Propagar cambio al mapa en tiempo real ──────────────────────────
+        from app.mqtt_client import update_slot_status
+        update_slot_status(espacio.slot_id, "ocupado")
+
         return QREscanearResponse(
             acceso_id=acceso.id_acceso,
             id_usuario=id_usuario,
