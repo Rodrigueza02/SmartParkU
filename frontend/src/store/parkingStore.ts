@@ -171,8 +171,11 @@ export const useParkingStore = create<ParkingState>((set, get) => ({
 
   controlServo: async (accion: 'abrir' | 'cerrar') => {
     try {
+      // Obtener token del authStore para el header Authorization
+      const { token } = (await import('./authStore')).useAuthStore.getState();
       const res = await fetch(`${API_BASE}/api/v1/parking/servo?accion=${accion}`, {
         method: 'POST',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
       });
       if (!res.ok) {
         const err = await res.json();
