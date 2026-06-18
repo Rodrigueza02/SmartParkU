@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Leaf, Car, Bike, Zap, AlertTriangle,
-  User, MapPin, Navigation, LogOut, Calendar, ShieldAlert, QrCode,
+  User, MapPin, Navigation, LogOut, ShieldAlert, QrCode,
 } from 'lucide-react';
 import StudentProfile from '@/components/StudentProfile';
 import ParkingMap from '@/components/ParkingMap';
@@ -46,9 +46,9 @@ type ViewType = 'map' | 'qr' | 'reservations' | 'panic' | 'history' | 'profile';
 
 const StudentDashboard = ({ user }: { user: any }) => {
   const logout = useAuthStore((state) => state.logout);
-  // id_usuario viene del store de auth. Si no existe fallback a 1 para desarrollo.
-  const authUser = useAuthStore((s) => s.user) as any;
-  const idUsuario: number = authUser?.id_usuario ?? 1;
+  // id_usuario viene del response de login guardado en el store
+  const authUser = useAuthStore((s) => s.user);
+  const idUsuario: number = authUser?.id_usuario ?? 0;
 
   const [spots, setSpots] = useState<ParkingSpot[]>(INITIAL_SPOTS);
   const [filter, setFilter] = useState<VehicleType | 'all'>('all');
@@ -80,7 +80,7 @@ const StudentDashboard = ({ user }: { user: any }) => {
     { id: 'profile', label: 'PERFIL', icon: User },
   ];
 
-  if (view === 'profile') return <StudentProfile user={user} onBack={() => setView('map')} />;
+  if (view === 'profile') return <StudentProfile user={user} onBack={() => setView('map')} onGoToQR={() => setView('qr')} />;
 
   return (
     <div className="min-h-screen pb-24 font-sans" style={{ background: '#F4FBFF' }}>
@@ -185,14 +185,12 @@ const StudentDashboard = ({ user }: { user: any }) => {
       </header>
 
       {/* ── Contenido por vista ── */}
-      <AnimatePresence mode="wait">
 
         {view === 'map' && (
           <motion.div
             key="map"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
           >
             {/* Filtros */}
             <section className="px-5 py-4">
@@ -241,13 +239,7 @@ const StudentDashboard = ({ user }: { user: any }) => {
 
         {/* ── Vista QR ── */}
         {view === 'qr' && (
-          <motion.div
-            key="qr"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="px-5 py-6"
-          >
+          <div className="px-5 py-6">
             <div className="mb-4">
               <h2 className="text-xl font-black" style={{ color: UCC.navy }}>Acceso QR</h2>
               <p className="text-sm text-gray-400 font-medium mt-0.5">
@@ -255,18 +247,12 @@ const StudentDashboard = ({ user }: { user: any }) => {
               </p>
             </div>
             <QRAcceso idUsuario={idUsuario} />
-          </motion.div>
+          </div>
         )}
 
         {/* ── Vista Historial Green ── */}
         {view === 'history' && (
-          <motion.div
-            key="history"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="px-5 py-6"
-          >
+          <div className="px-5 py-6">
             <div
               className="rounded-[28px] p-6 border"
               style={{ background: `${UCC.green}10`, borderColor: `${UCC.green}30` }}
@@ -293,18 +279,12 @@ const StudentDashboard = ({ user }: { user: any }) => {
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* ── Vista Pánico ── */}
         {view === 'panic' && (
-          <motion.div
-            key="panic"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="px-5 py-6"
-          >
+          <div className="px-5 py-6">
             <div className="bg-red-50 rounded-[28px] p-6 border border-red-100 text-center">
               <ShieldAlert size={44} className="mx-auto text-red-400 mb-3" />
               <h2 className="text-xl font-black text-red-800 mb-2">Botón de Pánico</h2>
@@ -315,10 +295,8 @@ const StudentDashboard = ({ user }: { user: any }) => {
                 ACTIVAR ALERTA
               </button>
             </div>
-          </motion.div>
+          </div>
         )}
-
-      </AnimatePresence>
 
       {/* FAB alerta */}
       <div className="fixed bottom-24 right-5">

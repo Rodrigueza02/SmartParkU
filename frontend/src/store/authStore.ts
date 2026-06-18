@@ -1,14 +1,17 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+export interface AuthUser {
+  nombre: string;
+  rol: string;
+  estado: string;
+  id_usuario: number;   // viene del backend en el response de login
+}
+
 interface AuthState {
   token: string | null;
-  user: {
-    nombre: string;
-    rol: string;
-    estado: string;
-  } | null;
-  setAuth: (token: string, user: AuthState['user']) => void;
+  user: AuthUser | null;
+  setAuth: (token: string, user: AuthUser) => void;
   logout: () => void;
 }
 
@@ -20,8 +23,6 @@ export const useAuthStore = create<AuthState>()(
       setAuth: (token, user) => set({ token, user }),
       logout: () => set({ token: null, user: null }),
     }),
-    {
-      name: 'smartparku-auth',
-    }
+    { name: 'smartparku-auth' }
   )
 );
