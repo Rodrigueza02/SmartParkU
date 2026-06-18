@@ -4,9 +4,11 @@ from app.api.auth import router as auth_router
 from app.api.parking import router as parking_router
 from app.api.vehiculos import router as vehiculos_router
 from app.api.accesos import router as accesos_router
+from app.api.qr import router as qr_router
 
 api_router = APIRouter()
 api_router.include_router(auth_router)
 api_router.include_router(parking_router)
 api_router.include_router(vehiculos_router)
 api_router.include_router(accesos_router)
+api_router.include_router(qr_router)
