@@ -55,6 +55,42 @@ function TipoIcon({ tipo }: { tipo: string }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// BOTÓN DE PRUEBA — Simula el escaneo usando el qr_token en memoria (sin cámara)
+// Solo visible cuando hay un QR activo. Útil para pruebas desde PC.
+// ─────────────────────────────────────────────────────────────────────────────
+function SimularEscaneoBtn() {
+  const { qrGenerado, escanearQR } = useQRStore();
+  if (!qrGenerado) return null;
+
+  return (
+    <div className="w-full flex flex-col items-center gap-2 mt-1">
+      {/* Separador con texto */}
+      <div className="flex items-center gap-3 w-full max-w-xs">
+        <div className="flex-1 h-px bg-gray-200" />
+        <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest whitespace-nowrap">
+          Solo para pruebas desde PC
+        </span>
+        <div className="flex-1 h-px bg-gray-200" />
+      </div>
+
+      <motion.button
+        whileTap={{ scale: 0.96 }}
+        onClick={() => escanearQR(qrGenerado.qr_token)}
+        className="w-full max-w-xs py-3 font-black rounded-2xl text-sm flex items-center justify-center gap-2 border-2 border-dashed"
+        style={{
+          color: UCC.blue,
+          borderColor: `${UCC.blue}40`,
+          background: `${UCC.blue}08`,
+        }}
+      >
+        <CheckCircle2 size={16} />
+        Simular escaneo en entrada
+      </motion.button>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // PANTALLA 1 — Solicitar QR
 // Muestra botón "Generar QR" y, una vez generado, la imagen con cuenta regresiva
 // ─────────────────────────────────────────────────────────────────────────────
@@ -163,6 +199,9 @@ function PantallaSolicitarQR({ idUsuario, idVehiculo }: QRAccesoProps) {
         <p className="text-xs text-gray-400 text-center max-w-[220px] leading-relaxed">
           Presenta este código en el lector de la entrada del parqueadero UCC.
         </p>
+
+        {/* ── Botón de prueba desde PC (simula el escaneo sin cámara) ── */}
+        <SimularEscaneoBtn />
       </motion.div>
     );
   }
