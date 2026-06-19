@@ -1,0 +1,187 @@
+"use client";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Mail, ChevronLeft, Loader2, CheckCircle2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+export default function ForgotPasswordPage() {
+  const [correo, setCorreo] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess(false);
+
+    try {
+      const response = await fetch("http://localhost:8000/api/v1/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ correo }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Error al enviar el correo");
+      }
+
+      setSuccess(true);
+    } catch (err: any) {
+      setError(err.message || "Error al conectar con el servidor");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <main className="min-h-screen flex items-center justify-center p-8" style={{ background: '#F4FBFF' }}>
+      {/* Burbujas de fondo */}
+      <div className="absolute top-[-10%] right-[-5%] w-72 h-72 bg-[#00AEEF]/8 rounded-full blur-[80px]" />
+      <div className="absolute bottom-[-10%] left-[-5%] w-72 h-72 bg-[#6AB023]/8 rounded-full blur-[80px]" />
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md relative z-10"
+      >
+        {/* Botón de regreso */}
+        <button
+          onClick={() => router.push("/")}
+          className="mb-6 flex items-center gap-2 text-sm font-bold transition-colors"
+          style={{ color: "#00AEEF" }}
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Volver al login
+        </button>
+
+        {/* Tarjeta principal */}
+        <div
+          className="bg-white rounded-3xl p-8 shadow-xl border"
+          style={{ borderColor: "#00AEEF20", boxShadow: "0 20px 60px rgba(0,174,239,0.10)" }}
+        >
+          {/* Barra de acento */}
+          <div
+            className="h-1 w-16 rounded-full mb-6 mx-auto"
+            style={{ background: "linear-gradient(90deg, #6AB023, #00AEEF)" }}
+          />
+
+          {/* Título */}
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-black mb-2" style={{ color: "#1E3A5F" }}>
+              ¿Olvidaste tu contraseña?
+            </h1>
+            <p className="text-sm text-gray-500 font-medium">
+              Ingresa tu correo institucional y te enviaremos un enlace para restablecer tu contraseña.
+            </p>
+          </div>
+
+          <AnimatePresence mode="wait">
+            {success ? (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="text-center py-8"
+              >
+                <CheckCircle2 className="w-16 h-16 mx-auto mb-4" style={{ color: "#6AB023" }} />
+                <h2 className="text-lg font-black mb-2" style={{ color: "#1E3A5F" }}>
+                  ¡Correo enviado!
+                </h2>
+                <p className="text-sm text-gray-500 font-medium mb-6">
+                  Revisa tu bandeja de entrada. Te hemos enviado las instrucciones para restablecer tu contraseña.
+                </p>
+                <button
+                  onClick={() => router.push("/")}
+                  className="w-full py-3 text-white font-bold rounded-2xl transition-all active:scale-[0.98]"
+                  style={{
+                    background: "linear-gradient(135deg, #6AB023 0%, #00AEEF 100%)",
+                    boxShadow: "0 8px 24px rgba(0,174,239,0.35)",
+                  }}
+                >
+                  Volver al login
+                </button>
+              </motion.div>
+            ) : (
+              <motion.form
+                key="form"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onSubmit={handleSubmit}
+                className="flex flex-col gap-5"
+              >
+                <AnimatePresence>
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="bg-red-50 text-red-600 p-3 rounded-2xl text-sm font-semibold border border-red-100 text-center"
+                    >
+                      {error}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Campo de correo */}
+                <div className="space-y-1.5">
+                  <label
+                    className="text-xs font-bold ml-1 uppercase tracking-widest block"
+                    style={{ color: "#1E3A5F" }}
+                  >
+                    Correo Institucional
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                      <Mail className="w-4 h-4 text-gray-300 group-focus-within:text-[#00AEEF] transition-colors" />
+                    </div>
+                    <input
+                      type="email"
+                      required
+                      value={correo}
+                      onChange={(e) => setCorreo(e.target.value)}
+                      placeholder="ejemplo@ucc.edu.co"
+                      className="w-full pl-11 pr-4 py-3.5 rounded-2xl text-sm font-medium text-gray-700 placeholder:text-gray-300 outline-none transition-all bg-gray-50 border-2 border-transparent"
+                      onFocus={(e) => {
+                        e.target.style.borderColor = "#00AEEF50";
+                        e.target.style.background = "#fff";
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = "transparent";
+                        e.target.style.background = "#f9fafb";
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Botón submit */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-4 text-white font-black rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-60 text-base mt-2"
+                  style={{
+                    background: "linear-gradient(135deg, #6AB023 0%, #00AEEF 100%)",
+                    boxShadow: "0 8px 24px rgba(0,174,239,0.35)",
+                  }}
+                >
+                  {loading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    "Enviar enlace de recuperación"
+                  )}
+                </button>
+              </motion.form>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.div>
+    </main>
+  );
+}

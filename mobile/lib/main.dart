@@ -4,6 +4,7 @@ import 'core/providers/auth_provider.dart';
 import 'core/providers/parking_provider.dart';
 import 'features/auth/presentation/login_page.dart';
 import 'features/parking/presentation/student_dashboard_page.dart';
+import 'features/admin/presentation/admin_dashboard_page.dart';
 
 void main() {
   runApp(
@@ -35,11 +36,16 @@ class SmartParkUApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFFFDFDFD),
       ),
       home: const _AuthGate(),
+      routes: {
+        '/login': (context) => const LoginPage(),
+        '/student-dashboard': (context) => const StudentDashboardPage(),
+        '/admin-dashboard': (context) => const AdminDashboardPage(),
+      },
     );
   }
 }
 
-/// Decide qué pantalla mostrar según el estado de autenticación.
+/// Decide qué pantalla mostrar según el estado de autenticación y rol del usuario.
 class _AuthGate extends StatelessWidget {
   const _AuthGate();
 
@@ -57,9 +63,16 @@ class _AuthGate extends StatelessWidget {
         );
 
       case AuthStatus.authenticated:
-        // Por ahora todos los roles van al mismo dashboard de estudiante.
-        // TODO: agregar AdminDashboardPage para SuperAdmin / Administrativo.
-        return const StudentDashboardPage();
+        // Enrutamiento según el rol del usuario
+        final user = auth.currentUser;
+        if (user != null &&
+            (user.role == 'SuperAdmin' || user.role == 'Administrativo')) {
+          // Administradores van al dashboard admin
+          return const AdminDashboardPage();
+        } else {
+          // Estudiantes y otros roles van al dashboard de estudiante
+          return const StudentDashboardPage();
+        }
 
       case AuthStatus.unauthenticated:
         return const LoginPage();
