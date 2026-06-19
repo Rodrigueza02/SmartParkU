@@ -385,10 +385,13 @@ const AdminMapWidget = ({ slots, onControlServo }: { slots: ParkingSlot[]; onCon
 
 export default function AdminDashboard() {
   const { token, user } = useAuthStore();
-  const { slots, isConnected, controlServo } = useParkingStore();
+  const { slots: slotsObj, isConnected, controlServo } = useParkingStore();
   const router = useRouter();
   const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Convertir objeto de slots a array
+  const slots: ParkingSlot[] = Object.values(slotsObj || {});
 
   // Protección de ruta
   useEffect(() => {

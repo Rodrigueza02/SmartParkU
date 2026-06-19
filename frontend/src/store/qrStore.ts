@@ -77,12 +77,23 @@ export const useQRStore = create<QRState>((set, get) => ({
   generarQR: async (id_usuario, id_vehiculo) => {
     set({ step: 'generating', error: null, qrGenerado: null, acceso: null });
     try {
+      // Obtener token desde authStore
+      const { getAuthToken } = await import('@/store/authStore');
+      const token = getAuthToken();
+      
+      if (!token) {
+        throw new Error('No estás autenticado. Inicia sesión primero.');
+      }
+
       const body: Record<string, unknown> = { id_usuario };
       if (id_vehiculo) body.id_vehiculo = id_vehiculo;
 
       const res = await fetch(`${API_BASE}/api/v1/qr/generar`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(body),
       });
 
@@ -107,9 +118,20 @@ export const useQRStore = create<QRState>((set, get) => ({
   escanearQR: async (qr_token) => {
     set({ step: 'scanning', error: null });
     try {
+      // Obtener token desde authStore
+      const { getAuthToken } = await import('@/store/authStore');
+      const token = getAuthToken();
+      
+      if (!token) {
+        throw new Error('No estás autenticado. Inicia sesión primero.');
+      }
+
       const res = await fetch(`${API_BASE}/api/v1/qr/escanear`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ qr_token }),
       });
 
