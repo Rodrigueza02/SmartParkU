@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Leaf, Car, Bike, Zap, AlertTriangle,
-  User, MapPin, Navigation, LogOut, ShieldAlert, QrCode,
+  User, MapPin, Navigation, LogOut, ShieldAlert, QrCode, Loader2,
 } from 'lucide-react';
 import StudentProfile from '@/components/StudentProfile';
 import ParkingMap from '@/components/ParkingMap';
@@ -42,7 +42,7 @@ const UCC = {
   cyan:  '#00BCD4',
 };
 
-type ViewType = 'map' | 'qr' | 'reservations' | 'panic' | 'history' | 'profile';
+type ViewType = 'map' | 'qr' | 'reservations' | 'panic' | 'history' | 'profile' | 'exit';
 
 const StudentDashboard = ({ user }: { user: any }) => {
   const logout = useAuthStore((state) => state.logout);
@@ -54,6 +54,9 @@ const StudentDashboard = ({ user }: { user: any }) => {
   const [filter, setFilter] = useState<VehicleType | 'all'>('all');
   const [co2Saved, setCo2Saved] = useState(1240);
   const [view, setView] = useState<ViewType>('map');
+  const [accesoActivo, setAccesoActivo] = useState<any>(null);
+  const [loadingExit, setLoadingExit] = useState(false);
+  const token = useAuthStore((s) => s.token);
 
   // Simulación de cambios en tiempo real (demo)
   useEffect(() => {
@@ -71,6 +74,60 @@ const StudentDashboard = ({ user }: { user: any }) => {
     }, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // Cargar acceso activo del usuario
+  useEffect(() => {
+    if (!token || !idUsuario) return;
+    
+    const fetchAccesoActivo = async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/api/v1/accesos/usuario/${idUsuario}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const accesos = await response.json();
+          // Buscar el acceso sin hora de salida (activo)
+          const activo = accesos.find((a: any) => !a.hora_salida);
+          setAccesoActivo(activo || null);
+        }
+      } catch (error) {
+        console.error('Error al cargar acceso activo:', error);
+      }
+    };
+
+    fetchAccesoActivo();
+    // Actualizar cada 30 segundos
+    const interval = setInterval(fetchAccesoActivo, 30000);
+    return () => clearInterval(interval);
+  }, [token, idUsuario]);
+
+  const handleRegistrarSalida = async () => {
+    if (!accesoActivo || !token) return;
+    
+    setLoadingExit(true);
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/v1/accesos/${accesoActivo.id_acceso}/salida`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (response.ok) {
+        setAccesoActivo(null);
+        setView('map');
+        alert('¡Salida registrada exitosamente! Espacio liberado.');
+      } else {
+        const error = await response.json();
+        alert(error.detail || 'Error al registrar la salida');
+      }
+    } catch (error) {
+      alert('Error al conectar con el servidor');
+    } finally {
+      setLoadingExit(false);
+    }
+  };
 
   const navigationItems: { id: ViewType; label: string; icon: React.ElementType; color?: string }[] = [
     { id: 'map',   label: 'MAPA',   icon: Navigation },
@@ -111,6 +168,21 @@ const StudentDashboard = ({ user }: { user: any }) => {
           </motion.div>
 
           <div className="flex gap-2">
+            {accesoActivo && (
+              <motion.button
+                whileTap={{ scale: 0.92 }}
+                onClick={() => setView('exit')}
+                className="px-3 h-10 rounded-xl flex items-center justify-center gap-1.5"
+                style={{
+                  background: view === 'exit' ? 'rgba(255,255,255,0.35)' : 'rgba(181,211,52,0.25)',
+                  border: '1px solid rgba(181,211,52,0.4)',
+                }}
+                title="Registrar salida"
+              >
+                <MapPin size={16} className="text-[#B5D334]" />
+                <span className="text-xs font-bold text-white">Salida</span>
+              </motion.button>
+            )}
             <motion.button
               whileTap={{ scale: 0.92 }}
               onClick={() => setView('qr')}
@@ -279,6 +351,107 @@ const StudentDashboard = ({ user }: { user: any }) => {
                 ))}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ── Vista Salida del Parqueadero ── */}
+        {view === 'exit' && (
+          <div className="px-5 py-6">
+            {accesoActivo ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="rounded-[28px] p-6 border bg-white"
+                style={{ borderColor: `${UCC.lime}40`, boxShadow: '0 8px 24px rgba(181,211,52,0.15)' }}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div 
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                    style={{ background: `${UCC.lime}20` }}
+                  >
+                    <MapPin size={24} style={{ color: UCC.green }} />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black" style={{ color: UCC.navy }}>Acceso Activo</h2>
+                    <p className="text-xs text-gray-400 font-medium">Espacio ocupado</p>
+                  </div>
+                </div>
+
+                {/* Información del acceso */}
+                <div className="space-y-3 mb-6">
+                  <div className="bg-gray-50 p-4 rounded-2xl">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                      Espacio Asignado
+                    </p>
+                    <p className="text-2xl font-black" style={{ color: UCC.navy }}>
+                      {accesoActivo.espacio?.label || 'N/A'}
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded-2xl flex justify-between items-center">
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                        Hora de entrada
+                      </p>
+                      <p className="text-base font-black" style={{ color: UCC.navy }}>
+                        {new Date(accesoActivo.hora_entrada).toLocaleTimeString('es-CO', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                        ID Acceso
+                      </p>
+                      <p className="text-base font-black text-gray-600">
+                        #{accesoActivo.id_acceso}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Botón de salida */}
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleRegistrarSalida}
+                  disabled={loadingExit}
+                  className="w-full py-4 text-white font-black rounded-2xl flex items-center justify-center gap-2 transition-all disabled:opacity-60"
+                  style={{
+                    background: `linear-gradient(135deg, ${UCC.green}, ${UCC.blue})`,
+                    boxShadow: '0 8px 24px rgba(0,174,239,0.30)',
+                  }}
+                >
+                  {loadingExit ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <LogOut size={20} />
+                      Registrar Salida del Parqueadero
+                    </>
+                  )}
+                </motion.button>
+
+                <p className="text-xs text-gray-400 text-center mt-3">
+                  Al salir, el espacio quedará disponible para otros estudiantes
+                </p>
+              </motion.div>
+            ) : (
+              <div className="rounded-[28px] p-8 border text-center" style={{ background: '#f8fafc', borderColor: '#e2e8f0' }}>
+                <MapPin size={44} className="mx-auto text-gray-300 mb-3" />
+                <h2 className="text-lg font-black text-gray-600 mb-2">Sin Acceso Activo</h2>
+                <p className="text-sm text-gray-400 font-medium mb-6">
+                  No tienes ningún vehículo en el parqueadero en este momento.
+                </p>
+                <button 
+                  onClick={() => setView('qr')}
+                  className="px-6 py-3 rounded-2xl font-bold text-sm"
+                  style={{ background: `${UCC.blue}15`, color: UCC.blue }}
+                >
+                  Generar QR de Ingreso
+                </button>
+              </div>
+            )}
           </div>
         )}
 
