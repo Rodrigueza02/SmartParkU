@@ -15,6 +15,9 @@ interface AuthState {
   logout: () => void;
 }
 
+// Helper para obtener el token actual
+export const getAuthToken = () => useAuthStore.getState().token;
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
