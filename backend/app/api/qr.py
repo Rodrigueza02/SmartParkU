@@ -22,14 +22,21 @@ from app.schemas.qr import (
 from app.services.qr_service import QRService
 from app.schemas.acceso import AccesoResponse
 from app.services.acceso_service import AccesoService
+from app.core.security import get_current_user, require_roles
 
 router = APIRouter(prefix="/api/v1/qr", tags=["qr"])
+
+# El escaneo en la entrada lo puede hacer cualquier usuario autenticado
+# (incluso el lector físico autenticado como Administrativo)
+_any_auth       = Depends(get_current_user)
+_puede_generar  = Depends(require_roles("SuperAdmin", "Administrativo", "Estudiante", "Visitante"))
 
 
 @router.post(
     "/generar",
     response_model=QRGeneradoResponse,
     status_code=status.HTTP_200_OK,
+    dependencies=[_puede_generar],
     summary="Generar QR de acceso al parqueadero",
     description=(
         "Busca el primer espacio libre disponible, genera un payload firmado "
@@ -41,17 +48,6 @@ def generar_qr(
     data: QRGenerarRequest,
     db: Session = Depends(get_db),
 ):
-    """
-    ### Uso esperado
-    El frontend (Helen) llama este endpoint cuando el estudiante quiere ingresar.
-    Recibe la imagen QR lista para mostrar en pantalla y el `qr_token` para reenviar
-    al escanear.
-
-    ### Respuesta
-    - `qr_image_base64` → mostrar directamente en `<img src=...>`
-    - `qr_token` → guardar en estado local para el endpoint de escaneo
-    - `expira_en` → mostrar cuenta regresiva al estudiante
-    """
     return QRService(db).generar_qr(data)
 
 
@@ -59,6 +55,7 @@ def generar_qr(
     "/escanear",
     response_model=QREscanearResponse,
     status_code=status.HTTP_201_CREATED,
+    dependencies=[_any_auth],
     summary="Escanear QR y asignar cupo en el parqueadero",
     description=(
         "Recibe el token del QR escaneado, verifica la firma HMAC y la expiración, "
@@ -83,14 +80,12 @@ def escanear_qr(
 @router.get(
     "/acceso/{id_acceso}",
     response_model=AccesoResponse,
+    dependencies=[_any_auth],
     summary="Consultar detalle de un acceso registrado por QR",
 )
 def get_acceso_qr(
     id_acceso: int,
     db: Session = Depends(get_db),
 ):
-    """
-    Devuelve el acceso creado al escanear el QR.
-    Útil para que el frontend muestre confirmación de ingreso.
-    """
+    """Devuelve el acceso creado al escanear el QR."""
     return AccesoService(db).get_by_id(id_acceso)

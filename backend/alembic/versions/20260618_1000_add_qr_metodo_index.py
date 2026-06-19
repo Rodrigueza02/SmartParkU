@@ -16,6 +16,7 @@ Flujo QR:
 """
 from typing import Sequence, Union
 from alembic import op
+import sqlalchemy as sa
 
 
 # revision identifiers
@@ -26,9 +27,19 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Índice en metodo para filtrar rápido por tipo de acceso (qr, manual, etc.)
-    op.create_index('ix_accesos_metodo', 'accesos', ['metodo'], unique=False)
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    # Solo crear si la tabla existe y el índice no existe todavía
+    if 'accesos' in inspector.get_table_names():
+        existing = [ix["name"] for ix in inspector.get_indexes('accesos')]
+        if 'ix_accesos_metodo' not in existing:
+            op.create_index('ix_accesos_metodo', 'accesos', ['metodo'], unique=False)
 
 
 def downgrade() -> None:
-    op.drop_index('ix_accesos_metodo', table_name='accesos')
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    if 'accesos' in inspector.get_table_names():
+        existing = [ix["name"] for ix in inspector.get_indexes('accesos')]
+        if 'ix_accesos_metodo' in existing:
+            op.drop_index('ix_accesos_metodo', table_name='accesos')
