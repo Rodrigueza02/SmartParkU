@@ -224,6 +224,7 @@ export default function LoginPage() {
                 <UCCSwitch />
                 <button
                   type="button"
+                  onClick={() => router.push("/forgot-password")}
                   className="text-xs font-bold hover:underline underline-offset-4 ml-3 whitespace-nowrap"
                   style={{ color: "#00AEEF" }}
                 >
