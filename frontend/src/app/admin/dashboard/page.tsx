@@ -385,7 +385,8 @@ const AdminMapWidget = ({ slots, onControlServo }: { slots: ParkingSlot[]; onCon
 
 export default function AdminDashboard() {
   const { token, user } = useAuthStore();
-  const { slots: slotsObj, isConnected, controlServo } = useParkingStore();
+  const { slots: slotsObj, wsStatus, controlServo } = useParkingStore();
+  const isConnected = wsStatus === 'connected';
   const router = useRouter();
   const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [loading, setLoading] = useState(true);
