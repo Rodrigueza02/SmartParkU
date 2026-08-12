@@ -211,7 +211,9 @@ def stop_mqtt():
 async def start_mqtt():
     global _mqtt_client
 
-    if not settings.MQTT_USERNAME or not settings.MQTT_PASSWORD:
+    # En modo local (Mosquitto, puerto 1883) no se necesitan credenciales
+    use_tls = settings.MQTT_PORT != 1883
+    if use_tls and (not settings.MQTT_USERNAME or not settings.MQTT_PASSWORD):
         logger.error("MQTT_USERNAME o MQTT_PASSWORD no configurados en .env")
         return
 
@@ -220,9 +222,19 @@ async def start_mqtt():
         client_id="smartparku-backend",
         protocol=mqtt.MQTTv311,
     )
-    _mqtt_client.username_pw_set(settings.MQTT_USERNAME, settings.MQTT_PASSWORD)
-    _mqtt_client.tls_set(cert_reqs=ssl.CERT_NONE)
-    _mqtt_client.tls_insecure_set(True)
+
+    # Puerto 1883 = Mosquitto local sin TLS (docker-compose dev)
+    # Puerto 8883 = HiveMQ Cloud con TLS (produccion)
+    use_tls = settings.MQTT_PORT != 1883
+    if use_tls:
+        if settings.MQTT_USERNAME:
+            _mqtt_client.username_pw_set(settings.MQTT_USERNAME, settings.MQTT_PASSWORD)
+        _mqtt_client.tls_set(cert_reqs=ssl.CERT_NONE)
+        _mqtt_client.tls_insecure_set(True)
+        logger.info("MQTT configurado con TLS (modo cloud)")
+    else:
+        logger.info("MQTT configurado sin TLS (modo local Mosquitto)")
+
     _mqtt_client.on_connect = _on_connect
     _mqtt_client.on_message = _on_message
     _mqtt_client.on_disconnect = _on_disconnect

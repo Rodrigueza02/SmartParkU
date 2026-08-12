@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 """
 SmartParkU - Test rapido de publicacion MQTT (paho-mqtt 2.x)
-Ejecutar: python test_pub.py
+
+Modos de uso:
+  - HiveMQ Cloud (produccion):  python test_pub.py
+  - Mosquitto local (Docker):   python test_pub.py --local
 """
 import ssl
+import sys
 import json
 import time
 import paho.mqtt.client as mqtt
@@ -13,10 +17,21 @@ import os
 
 load_dotenv()
 
-BROKER   = os.getenv("MQTT_BROKER",   "7de2fa1d05f84c5c8f2fcacca06d98da.s1.eu.hivemq.cloud")
-PORT     = int(os.getenv("MQTT_PORT", "8883"))
-USERNAME = os.getenv("MQTT_USERNAME", "Juliana")
-PASSWORD = os.getenv("MQTT_PASSWORD", "1138524566Juli*")
+# Detectar si se pasa --local para usar Mosquitto del docker-compose
+USE_LOCAL = "--local" in sys.argv
+
+if USE_LOCAL:
+    BROKER   = "localhost"
+    PORT     = 1883
+    USERNAME = ""
+    PASSWORD = ""
+    print("[INFO] Modo LOCAL — conectando a Mosquitto en localhost:1883 (sin TLS)\n")
+else:
+    BROKER   = os.getenv("MQTT_BROKER",   "7de2fa1d05f84c5c8f2fcacca06d98da.s1.eu.hivemq.cloud")
+    PORT     = int(os.getenv("MQTT_PORT", "8883"))
+    USERNAME = os.getenv("MQTT_USERNAME", "Juliana")
+    PASSWORD = os.getenv("MQTT_PASSWORD", "1138524566Juli*")
+    print("[INFO] Modo CLOUD — conectando a HiveMQ en puerto 8883 (TLS)\n")
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
@@ -86,9 +101,12 @@ client = mqtt.Client(
     client_id="smartparku-test-pub",
     protocol=mqtt.MQTTv311,
 )
-client.username_pw_set(USERNAME, PASSWORD)
-client.tls_set(cert_reqs=ssl.CERT_NONE)
-client.tls_insecure_set(True)
+
+if not USE_LOCAL:
+    client.username_pw_set(USERNAME, PASSWORD)
+    client.tls_set(cert_reqs=ssl.CERT_NONE)
+    client.tls_insecure_set(True)
+
 client.on_connect    = on_connect
 client.on_disconnect = on_disconnect
 
@@ -98,4 +116,7 @@ try:
     client.loop_forever()
 except Exception as e:
     print(f"[ERROR] {e}")
-    print("\nVerifica con: ping 7de2fa1d05f84c5c8f2fcacca06d98da.s1.eu.hivemq.cloud")
+    if USE_LOCAL:
+        print("\nVerifica que el docker-compose esté corriendo: docker compose ps")
+    else:
+        print("\nVerifica con: ping 7de2fa1d05f84c5c8f2fcacca06d98da.s1.eu.hivemq.cloud")

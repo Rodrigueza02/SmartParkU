@@ -1,0 +1,107 @@
+services:
+
+  # ─── Base de datos PostgreSQL ───────────────────────────────────────────────
+  db:
+    image: postgres:15
+    container_name: smartparku_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: smartparku
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/postgres_data:/var/lib/postgresql/data
+    networks:
+      - smartparku_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d smartparku"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── pgAdmin (interfaz web para la BD) ─────────────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: smartparku_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@smartparku.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    volumes:
+      - ./data/backup:/home/backup
+    networks:
+      - smartparku_net
+    depends_on:
+      - db
+
+  # ─── Broker MQTT local (Mosquitto) para pruebas ────────────────────────────
+  # En producción se usa HiveMQ Cloud; aquí solo para desarrollo local sin internet
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: smartparku_mqtt
+    restart: always
+    ports:
+      - "1883:1883"   # MQTT sin TLS (local)
+      - "9001:9001"   # WebSocket MQTT (para debug desde navegador)
+    volumes:
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    networks:
+      - smartparku_net
+
+  # ─── Backend FastAPI ────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: smartparku_backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/smartparku
+      SECRET_KEY: clave_local_para_pruebas_cambiar_en_produccion
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+      # Para pruebas locales apunta al broker Mosquitto del compose
+      # Para usar HiveMQ Cloud cambia estos valores por los del .env real
+      MQTT_BROKER: mqtt
+      MQTT_PORT: 1883
+      MQTT_USERNAME: ""
+      MQTT_PASSWORD: ""
+    depends_on:
+      db:
+        condition: service_healthy
+      mqtt:
+        condition: service_started
+    networks:
+      - smartparku_net
+
+  # ─── Frontend Next.js ───────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: smartparku_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    networks:
+      - smartparku_net
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+
+networks:
+  smartparku_net:
+    driver: bridge
