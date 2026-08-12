@@ -24,7 +24,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { useParkingStore } from "@/store/parkingStore";
+import { useParkingStore, ParkingSlot } from "@/store/parkingStore";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -33,16 +33,6 @@ function cn(...inputs: ClassValue[]) {
 // --- Tipos ---
 type SlotStatus = "libre" | "ocupado";
 type VehicleType = "carro" | "moto" | "bicicleta" | "vip";
-
-interface ParkingSlot {
-  id: number;
-  slot_id: string;
-  label: string;
-  tipo: VehicleType;
-  status: SlotStatus;
-  distancia_cm?: number;
-  updated_at: string;
-}
 
 interface Alerta {
   id: number;
