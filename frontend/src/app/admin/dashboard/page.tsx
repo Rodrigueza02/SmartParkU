@@ -301,7 +301,7 @@ const AdminMapWidget = ({ slots, onControlServo }: { slots: ParkingSlot[]; onCon
       <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100 grid grid-cols-2 sm:grid-cols-3 gap-6">
         {slots.map((slot) => (
           <motion.button
-            key={slot.slot_id}
+            key={slot.slot}
             whileTap={{ scale: 0.95 }}
             onClick={() => setSelectedSlot(slot)}
             className={cn(
