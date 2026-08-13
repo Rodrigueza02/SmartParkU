@@ -3,30 +3,28 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copiar dependencias primero para aprovechar caché de Docker
 COPY package*.json ./
 RUN npm install --frozen-lockfile
 
-# Copiar el resto del proyecto y compilar
 COPY . .
 RUN npm run build
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Etapa 2: Imagen de producción (más liviana)
+# Etapa 2: Imagen de producción usando el output standalone de Next.js
 FROM node:20-alpine AS runner
 
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Copiar solo lo necesario desde la etapa de build
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/.next ./.next
+# Copiar el servidor standalone generado por Next.js
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules ./node_modules
 
-# Exponer el puerto de Next.js
 EXPOSE 3000
 
-# Comando de inicio en producción
-CMD ["npm", "start"]
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "server.js"]
