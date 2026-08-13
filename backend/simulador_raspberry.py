@@ -29,18 +29,27 @@ PORT     = int(os.getenv("MQTT_PORT", "8883"))
 USERNAME = os.getenv("MQTT_USERNAME", "Juliana")
 PASSWORD = os.getenv("MQTT_PASSWORD", "1138524566Juli*")
 
-# Cajones del parqueadero UCC Pasto
-SLOTS = (
-    [{"slot": str(i), "tipo": "carro"}     for i in range(1, 23)] +
-    [{"slot": str(i), "tipo": "moto"}      for i in range(23, 33)] +
-    [{"slot": str(i), "tipo": "bicicleta"} for i in range(33, 41)]
-)
+# ── Definición canónica de los 10 espacios fijos UCC Pasto ───────────────────
+# Debe coincidir exactamente con SLOTS_DEFINICION en mqtt_client.py
+SLOTS = [
+    {"slot": "slot_01", "label": "C-01", "tipo": "carro"},
+    {"slot": "slot_02", "label": "C-02", "tipo": "carro"},
+    {"slot": "slot_03", "label": "C-03", "tipo": "carro"},
+    {"slot": "slot_04", "label": "C-04", "tipo": "carro"},
+    {"slot": "slot_05", "label": "M-01", "tipo": "moto"},
+    {"slot": "slot_06", "label": "M-02", "tipo": "moto"},
+    {"slot": "slot_07", "label": "M-03", "tipo": "moto"},
+    {"slot": "slot_08", "label": "B-01", "tipo": "bicicleta"},
+    {"slot": "slot_09", "label": "B-02", "tipo": "bicicleta"},
+    {"slot": "slot_10", "label": "V-01", "tipo": "vip"},
+]
 
 # Estado interno del simulador
 estado_slots = {
     s["slot"]: {
         "status":       random.choice(["libre", "libre", "ocupado"]),
         "tipo":         s["tipo"],
+        "label":        s["label"],
         "distancia_cm": random.uniform(20, 80),
     }
     for s in SLOTS
@@ -80,6 +89,7 @@ def publicar_estado_masivo(client):
     for slot_id, info in estado_slots.items():
         espacios.append({
             "slot":         slot_id,
+            "label":        info["label"],
             "status":       info["status"],
             "tipo":         info["tipo"],
             "distancia_cm": round(info["distancia_cm"], 1),
@@ -87,11 +97,11 @@ def publicar_estado_masivo(client):
     client.publish("parqueadero/espacios", json.dumps({"espacios": espacios}))
     libres   = sum(1 for s in estado_slots.values() if s["status"] == "libre")
     ocupados = len(estado_slots) - libres
-    print(f"[INFO] Estado publicado -> Libres: {libres}  Ocupados: {ocupados}")
+    print(f"[INFO] Estado masivo publicado -> Libres: {libres}  Ocupados: {ocupados}")
 
 
 def loop_sensores(client):
-    """Simula los sensores cambiando aleatoriamente el estado de los cajones."""
+    """Simula los sensores cambiando aleatoriamente el estado de los 10 cajones."""
     while True:
         time.sleep(5)
 
@@ -106,13 +116,15 @@ def loop_sensores(client):
                 info["status"]       = "libre"
                 info["distancia_cm"] = round(random.uniform(25, 90), 1)
 
+            # Publicar con el slot_id canónico ("slot_01", "slot_02", etc.)
             payload = {
                 "slot":      slot_id,
                 "distancia": info["distancia_cm"],
                 "tipo":      info["tipo"],
+                "label":     info["label"],
             }
             client.publish("sensores/ultrasonico", json.dumps(payload))
-            print(f"[sensor] cajon {slot_id:>3} {info['tipo']:10s} -> {info['distancia_cm']:5.1f} cm  ({info['status']})")
+            print(f"[sensor] {slot_id} ({info['label']}) {info['tipo']:10s} -> {info['distancia_cm']:5.1f} cm  ({info['status']})")
 
         publicar_estado_masivo(client)
 

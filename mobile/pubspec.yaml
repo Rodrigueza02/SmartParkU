@@ -1,5 +1,5 @@
 name: smart_park_u_mobile
-description: A new Flutter project for SmartParkU.
+description: SmartParkU - Parqueadero inteligente UCC Pasto
 version: 1.0.0+1
 
 environment:
@@ -9,11 +9,21 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
+  # HTTP
+  http: ^1.2.1
+  # Estado global
+  provider: ^6.1.2
+  # Almacenamiento local del token JWT
+  shared_preferences: ^2.3.2
+  # Escáner QR por cámara
+  mobile_scanner: ^5.2.3
+  # WebSocket para el mapa en tiempo real
+  web_socket_channel: ^3.0.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^3.0.0
 
 flutter:
   uses-material-design: true

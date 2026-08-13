@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 """
 SmartParkU - Test rapido de publicacion MQTT (paho-mqtt 2.x)
-Ejecutar: python test_pub.py
+
+Modos de uso:
+  - HiveMQ Cloud (produccion):  python test_pub.py
+  - Mosquitto local (Docker):   python test_pub.py --local
 """
 import ssl
+import sys
 import json
 import time
 import paho.mqtt.client as mqtt
@@ -13,10 +17,21 @@ import os
 
 load_dotenv()
 
-BROKER   = os.getenv("MQTT_BROKER",   "7de2fa1d05f84c5c8f2fcacca06d98da.s1.eu.hivemq.cloud")
-PORT     = int(os.getenv("MQTT_PORT", "8883"))
-USERNAME = os.getenv("MQTT_USERNAME", "Juliana")
-PASSWORD = os.getenv("MQTT_PASSWORD", "1138524566Juli*")
+# Detectar si se pasa --local para usar Mosquitto del docker-compose
+USE_LOCAL = "--local" in sys.argv
+
+if USE_LOCAL:
+    BROKER   = "localhost"
+    PORT     = 1883
+    USERNAME = ""
+    PASSWORD = ""
+    print("[INFO] Modo LOCAL — conectando a Mosquitto en localhost:1883 (sin TLS)\n")
+else:
+    BROKER   = os.getenv("MQTT_BROKER",   "7de2fa1d05f84c5c8f2fcacca06d98da.s1.eu.hivemq.cloud")
+    PORT     = int(os.getenv("MQTT_PORT", "8883"))
+    USERNAME = os.getenv("MQTT_USERNAME", "Juliana")
+    PASSWORD = os.getenv("MQTT_PASSWORD", "1138524566Juli*")
+    print("[INFO] Modo CLOUD — conectando a HiveMQ en puerto 8883 (TLS)\n")
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
@@ -24,25 +39,39 @@ def on_connect(client, userdata, flags, reason_code, properties):
         print(f"[OK] Conectado a {BROKER}")
         print("[...] Enviando mensajes de prueba...\n")
 
-        # Cajon 1 ocupado (8 cm = vehiculo presente)
+        # slot_01 ocupado (8 cm = vehiculo presente) — C-01 carro
         client.publish("sensores/ultrasonico", json.dumps(
-            {"slot": "1", "distancia": 8, "tipo": "carro"}
+            {"slot": "slot_01", "distancia": 8, "tipo": "carro", "label": "C-01"}
         ))
-        print("[->] cajon=1   distancia=8cm   tipo=carro  -> OCUPADO")
+        print("[->] slot_01 (C-01)  distancia=8cm   tipo=carro  -> OCUPADO")
         time.sleep(0.4)
 
-        # Cajon 2 libre (60 cm)
+        # slot_02 libre (60 cm) — C-02 carro
         client.publish("sensores/ultrasonico", json.dumps(
-            {"slot": "2", "distancia": 60, "tipo": "carro"}
+            {"slot": "slot_02", "distancia": 60, "tipo": "carro", "label": "C-02"}
         ))
-        print("[->] cajon=2   distancia=60cm  tipo=carro  -> LIBRE")
+        print("[->] slot_02 (C-02)  distancia=60cm  tipo=carro  -> LIBRE")
         time.sleep(0.4)
 
-        # Cajon 23 moto ocupado
+        # slot_05 moto ocupado — M-01
         client.publish("sensores/ultrasonico", json.dumps(
-            {"slot": "23", "distancia": 5, "tipo": "moto"}
+            {"slot": "slot_05", "distancia": 5, "tipo": "moto", "label": "M-01"}
         ))
-        print("[->] cajon=23  distancia=5cm   tipo=moto   -> OCUPADO")
+        print("[->] slot_05 (M-01)  distancia=5cm   tipo=moto   -> OCUPADO")
+        time.sleep(0.4)
+
+        # slot_08 bicicleta libre — B-01
+        client.publish("sensores/ultrasonico", json.dumps(
+            {"slot": "slot_08", "distancia": 45, "tipo": "bicicleta", "label": "B-01"}
+        ))
+        print("[->] slot_08 (B-01)  distancia=45cm  tipo=bici   -> LIBRE")
+        time.sleep(0.4)
+
+        # slot_10 VIP libre — V-01
+        client.publish("sensores/ultrasonico", json.dumps(
+            {"slot": "slot_10", "distancia": 70, "tipo": "vip", "label": "V-01"}
+        ))
+        print("[->] slot_10 (V-01)  distancia=70cm  tipo=vip    -> LIBRE")
         time.sleep(0.4)
 
         # Estado barrera abierta
@@ -72,9 +101,12 @@ client = mqtt.Client(
     client_id="smartparku-test-pub",
     protocol=mqtt.MQTTv311,
 )
-client.username_pw_set(USERNAME, PASSWORD)
-client.tls_set(cert_reqs=ssl.CERT_NONE)
-client.tls_insecure_set(True)
+
+if not USE_LOCAL:
+    client.username_pw_set(USERNAME, PASSWORD)
+    client.tls_set(cert_reqs=ssl.CERT_NONE)
+    client.tls_insecure_set(True)
+
 client.on_connect    = on_connect
 client.on_disconnect = on_disconnect
 
@@ -84,4 +116,7 @@ try:
     client.loop_forever()
 except Exception as e:
     print(f"[ERROR] {e}")
-    print("\nVerifica con: ping 7de2fa1d05f84c5c8f2fcacca06d98da.s1.eu.hivemq.cloud")
+    if USE_LOCAL:
+        print("\nVerifica que el docker-compose esté corriendo: docker compose ps")
+    else:
+        print("\nVerifica con: ping 7de2fa1d05f84c5c8f2fcacca06d98da.s1.eu.hivemq.cloud")
