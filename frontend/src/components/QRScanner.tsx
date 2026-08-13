@@ -58,7 +58,7 @@ export default function QRScanner({ onResult, onError, activo = true }: QRScanne
             fps: 10,
             qrbox: { width: 220, height: 220 },
             supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-          },
+          } as any,
           (decodedText) => {
             if (doneRef.current) return;
             doneRef.current = true;
