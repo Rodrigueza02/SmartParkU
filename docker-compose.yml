@@ -91,7 +91,7 @@ services:
     container_name: smartparku_frontend
     restart: always
     ports:
-      - "3000:3000"
+      - "3001:3000"   # Puerto 3001 local (3000 ocupado por Grafana)
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000
     networks:
