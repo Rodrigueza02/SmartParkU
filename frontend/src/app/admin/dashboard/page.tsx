@@ -375,7 +375,7 @@ const AdminMapWidget = ({ slots, onControlServo }: { slots: ParkingSlot[]; onCon
 
 export default function AdminDashboard() {
   const { token, user } = useAuthStore();
-  const { slots: slotsObj, wsStatus, controlServo } = useParkingStore();
+  const { slots: slotsObj, wsStatus, controlServo, connect, disconnect } = useParkingStore();
   const isConnected = wsStatus === 'connected';
   const router = useRouter();
   const [alertas, setAlertas] = useState<Alerta[]>([]);
@@ -394,6 +394,13 @@ export default function AdminDashboard() {
       router.push("/");
     }
   }, [token, user, router]);
+
+  // Conectar WebSocket al montar el componente
+  useEffect(() => {
+    connect();
+    return () => { disconnect(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -478,13 +485,17 @@ export default function AdminDashboard() {
         className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t px-8 py-4 flex justify-between items-center z-40"
         style={{ borderColor: '#e0f4ff' }}
       >
-        <button className="flex flex-col items-center gap-1.5" style={{ color: '#00AEEF' }}>
+        <button 
+          onClick={() => router.push('/admin/dashboard')}
+          className="flex flex-col items-center gap-1.5" style={{ color: '#00AEEF' }}>
           <div className="p-2 rounded-xl" style={{ background: '#00AEEF15' }}>
             <LayoutDashboard className="w-5 h-5" />
           </div>
           <span className="text-[10px] font-black uppercase tracking-tighter">Dashboard</span>
         </button>
-        <button className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-[#00AEEF] transition-colors">
+        <button 
+          onClick={() => router.push('/parking-map')}
+          className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-[#00AEEF] transition-colors">
           <MapIcon className="w-5 h-5" />
           <span className="text-[10px] font-bold uppercase tracking-tighter">Mapa Total</span>
         </button>
@@ -497,11 +508,15 @@ export default function AdminDashboard() {
           </div>
           <span className="text-[10px] font-black text-gray-600 uppercase tracking-tighter mt-1">Panel Admin</span>
         </button>
-        <button className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-[#6AB023] transition-colors">
+        <button 
+          onClick={() => router.push('/comparison')}
+          className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-[#6AB023] transition-colors">
           <PieChart className="w-5 h-5" />
           <span className="text-[10px] font-bold uppercase tracking-tighter">Reportes</span>
         </button>
-        <button className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-[#6AB023] transition-colors">
+        <button 
+          onClick={() => router.push('/dashboard')}
+          className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-[#6AB023] transition-colors">
           <User className="w-5 h-5" />
           <span className="text-[10px] font-bold uppercase tracking-tighter">Usuarios</span>
         </button>

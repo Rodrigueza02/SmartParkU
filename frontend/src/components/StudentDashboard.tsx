@@ -81,7 +81,7 @@ const StudentDashboard = ({ user }: { user: any }) => {
     
     const fetchAccesoActivo = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/v1/accesos/usuario/${idUsuario}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/accesos/usuario/${idUsuario}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (response.ok) {
@@ -107,7 +107,7 @@ const StudentDashboard = ({ user }: { user: any }) => {
     setLoadingExit(true);
     try {
       const response = await fetch(
-        `http://localhost:8000/api/v1/accesos/${accesoActivo.id_acceso}/salida`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/accesos/${accesoActivo.id_acceso}/salida`,
         {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` }
