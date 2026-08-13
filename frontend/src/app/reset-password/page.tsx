@@ -1,11 +1,12 @@
 "use client";
 
+import { Suspense } from "react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, ChevronLeft, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -262,5 +263,13 @@ export default function ResetPasswordPage() {
         </div>
       </motion.div>
     </main>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center" style={{ background: '#F4FBFF' }}><Loader2 className="w-8 h-8 animate-spin text-[#00AEEF]" /></div>}>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
