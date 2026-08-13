@@ -20,7 +20,6 @@ ENV NODE_ENV=production
 # Copiar el servidor standalone generado por Next.js
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 
