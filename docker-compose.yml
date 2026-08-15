@@ -69,12 +69,11 @@ services:
       SECRET_KEY: clave_local_para_pruebas_cambiar_en_produccion
       ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: 60
-      # Para pruebas locales apunta al broker Mosquitto del compose
-      # Para usar HiveMQ Cloud cambia estos valores por los del .env real
-      MQTT_BROKER: mqtt
-      MQTT_PORT: 1883
-      MQTT_USERNAME: ""
-      MQTT_PASSWORD: ""
+      # MQTT - HiveMQ Cloud (mismo broker que usa la Raspberry Pi)
+      MQTT_BROKER: 7de2fa1d05f84c5c8f2fcacca06d98da.s1.eu.hivemq.cloud
+      MQTT_PORT: 8883
+      MQTT_USERNAME: Juliana
+      MQTT_PASSWORD: "1138524566Juli*"
     depends_on:
       db:
         condition: service_healthy
