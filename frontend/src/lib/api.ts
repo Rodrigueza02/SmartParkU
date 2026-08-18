@@ -1,11 +1,14 @@
 /**
- * Obtiene la URL base del backend dinámicamente.
- * Funciona en cualquier red/IP sin necesidad de rebuild.
- * En el servidor (SSR) usa localhost; en el cliente usa el hostname actual.
+ * Obtiene la URL base del backend.
+ * Usa NEXT_PUBLIC_API_URL si está definida (build time),
+ * de lo contrario usa el hostname del navegador (runtime).
  */
 export function getApiBase(): string {
-  if (typeof window === 'undefined') {
-    return 'http://localhost:8000';
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
   }
-  return `http://${window.location.hostname}:8000`;
+  if (typeof window !== 'undefined') {
+    return `http://${window.location.hostname}:8000`;
+  }
+  return 'http://localhost:8000';
 }
