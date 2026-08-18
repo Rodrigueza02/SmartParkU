@@ -13,8 +13,7 @@
  */
 
 import { create } from 'zustand';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { getApiBase } from '@/lib/api';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -88,7 +87,7 @@ export const useQRStore = create<QRState>((set, get) => ({
       const body: Record<string, unknown> = { id_usuario };
       if (id_vehiculo) body.id_vehiculo = id_vehiculo;
 
-      const res = await fetch(`${API_BASE}/api/v1/qr/generar`, {
+      const res = await fetch(`${getApiBase()}/api/v1/qr/generar`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -126,7 +125,7 @@ export const useQRStore = create<QRState>((set, get) => ({
         throw new Error('No estás autenticado. Inicia sesión primero.');
       }
 
-      const res = await fetch(`${API_BASE}/api/v1/qr/escanear`, {
+      const res = await fetch(`${getApiBase()}/api/v1/qr/escanear`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

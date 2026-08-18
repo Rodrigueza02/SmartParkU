@@ -9,6 +9,7 @@ import StudentDashboard from "@/components/StudentDashboard";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { getApiBase } from "@/lib/api";
 
 export default function LoginPage() {
   const [correo, setCorreo] = useState("");
@@ -32,7 +33,7 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/auth/login`, {
+      const response = await fetch(`${getApiBase()}/api/v1/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, password }),

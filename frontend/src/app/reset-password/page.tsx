@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getApiBase } from "@/lib/api";
 import { Lock, ChevronLeft, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -39,7 +40,7 @@ function ResetPasswordContent() {
     setError("");
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/auth/reset-password`, {
+      const response = await fetch(`${getApiBase()}/api/v1/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
