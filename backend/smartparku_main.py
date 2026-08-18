@@ -71,6 +71,9 @@ servo_pwm.start(0)
 # Estado actual de cada slot
 estado_slots = {s["slot_id"]: "libre" for s in SLOTS}
 
+# Bandera para pausar la LCD durante mensajes del servo
+lcd_bloqueada = False
+
 # ── LCD helper ────────────────────────────────────────────────────────────────
 def lcd_mostrar(linea1: str, linea2: str = ""):
     if not LCD_DISPONIBLE:
@@ -110,6 +113,7 @@ def on_disconnect(client, userdata, flags, reason_code, properties):
 
 def on_message(client, userdata, msg):
     """Recibe comandos del servo desde el backend."""
+    global lcd_bloqueada
     try:
         data = json.loads(msg.payload.decode())
         print(f"\n[MQTT] Comando servo: {data}")
@@ -118,14 +122,20 @@ def on_message(client, userdata, msg):
             print("[->] Abriendo talanquera...")
             set_angulo(90)
             print("[OK] Talanquera ABIERTA")
+            lcd_bloqueada = True
             lcd_mostrar("Talanquera", "ABIERTA")
             client.publish("servo/estado", json.dumps({"estado": "abierta", "angulo": 90}))
+            time.sleep(3)  # mostrar mensaje 3 segundos
+            lcd_bloqueada = False
         elif accion == "cerrar":
             print("[->] Cerrando talanquera...")
             set_angulo(0)
             print("[OK] Talanquera CERRADA")
+            lcd_bloqueada = True
             lcd_mostrar("Talanquera", "CERRADA")
             client.publish("servo/estado", json.dumps({"estado": "cerrada", "angulo": 0}))
+            time.sleep(3)  # mostrar mensaje 3 segundos
+            lcd_bloqueada = False
     except Exception as e:
         print(f"[ERROR] on_message: {e}")
 
@@ -179,10 +189,11 @@ def loop_sensores(client):
                 client.publish(TOPIC_SENSORES, payload)
                 print(f"[sensor] {sid} ({slot['label']}) → {nuevo_estado.upper()}")
 
-                # Actualizar LCD con resumen
-                libres   = sum(1 for v in estado_slots.values() if v == "libre")
-                ocupados = sum(1 for v in estado_slots.values() if v == "ocupado")
-                lcd_mostrar(f"Libres:   {libres}/8", f"Ocupados: {ocupados}/8")
+                # Actualizar LCD con resumen (solo si no está bloqueada)
+                if not lcd_bloqueada:
+                    libres   = sum(1 for v in estado_slots.values() if v == "libre")
+                    ocupados = sum(1 for v in estado_slots.values() if v == "ocupado")
+                    lcd_mostrar(f"Libres:   {libres}/8", f"Ocupados: {ocupados}/8")
 
         # Si hubo cambio, publicar estado masivo también
         if cambio:
