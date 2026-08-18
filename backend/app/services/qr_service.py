@@ -198,10 +198,14 @@ class QRService:
         self.db.refresh(espacio)
 
         # ── Propagar cambio al mapa en tiempo real ──────────────────────────
-        # Actualiza parking_state en memoria y hace broadcast por WebSocket
-        # para que el mapa refleje el cajón como ocupado instantáneamente.
-        from app.mqtt_client import update_slot_status
+        from app.mqtt_client import update_slot_status, publish_servo
         update_slot_status(espacio.slot_id, "ocupado")
+
+        # ── Abrir talanquera automáticamente al validar QR ──────────────────
+        try:
+            publish_servo(90, "abrir")
+        except Exception:
+            pass  # No bloquear si el servo no está disponible
 
         return QREscanearResponse(
             acceso_id=acceso.id_acceso,
