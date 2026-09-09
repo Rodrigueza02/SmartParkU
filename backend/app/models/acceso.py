@@ -13,7 +13,10 @@ class Acceso(Base):
     id_espacio   = Column(Integer, ForeignKey("espacios_parqueo.id"),          nullable=True, index=True)
     hora_entrada = Column(DateTime, nullable=True)
     hora_salida  = Column(DateTime, nullable=True)
+    # Método de ingreso por portería: RFID | CARNET | QR_ENTRADA | qr (legacy)
     metodo       = Column(String(50), nullable=True)
+    # Timestamp en que el usuario confirmó su celda escaneando el QR del puesto
+    puesto_confirmado_en = Column(DateTime, nullable=True)
 
     # ORM relationships (lazy load — no circular import risk)
     usuario  = relationship("Usuario",       foreign_keys=[id_usuario],  lazy="select")

@@ -1,23 +1,24 @@
 # -*- coding: utf-8 -*-
 """
-SmartParkU - Simulador de Raspberry Pi (HC-SR04 + Servo)
-Simula los sensores y la barrera para probar el sistema completo sin hardware.
+SmartParkU - Simulador de Raspberry Pi (Solo talanquera / servo)
 
-Ejecutar con: python simulador_raspberry.py
+Escucha el tópico MQTT de control de la talanquera y simula la respuesta
+del hardware (servo SG90). Ya NO simula sensores de ocupación de celda —
+el estado de cada puesto se gestiona mediante escaneo de QR desde la app.
 
-Topicos que publica:
-  sensores/ultrasonico  -> distancia de cada cajon
-  parqueadero/espacios  -> estado masivo de todos los espacios
-  parqueadero/entrada   -> estado de la barrera
+Ejecutar con:
+    python simulador_raspberry.py
 
-Topicos que escucha:
-  servo/control         -> imprime comandos recibidos del backend/PC
+Tópicos que escucha:
+    talanquera/control   → comando de abrir/cerrar (publicado por el backend)
+
+Tópicos que publica:
+    servo/estado         → confirmación de la acción ejecutada
+    parqueadero/entrada  → estado de la barrera principal (libre/cerrada)
 """
 import ssl
 import json
 import time
-import random
-import threading
 import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
 import os
@@ -29,104 +30,48 @@ PORT     = int(os.getenv("MQTT_PORT", "8883"))
 USERNAME = os.getenv("MQTT_USERNAME", "Juliana")
 PASSWORD = os.getenv("MQTT_PASSWORD", "1138524566Juli*")
 
-# ── Definición canónica de los 10 espacios fijos UCC Pasto ───────────────────
-# Debe coincidir exactamente con SLOTS_DEFINICION en mqtt_client.py
-SLOTS = [
-    {"slot": "slot_01", "label": "C-01", "tipo": "carro"},
-    {"slot": "slot_02", "label": "C-02", "tipo": "carro"},
-    {"slot": "slot_03", "label": "C-03", "tipo": "carro"},
-    {"slot": "slot_04", "label": "C-04", "tipo": "carro"},
-    {"slot": "slot_05", "label": "M-01", "tipo": "moto"},
-    {"slot": "slot_06", "label": "M-02", "tipo": "moto"},
-    {"slot": "slot_07", "label": "M-03", "tipo": "moto"},
-    {"slot": "slot_08", "label": "B-01", "tipo": "bicicleta"},
-    {"slot": "slot_09", "label": "B-02", "tipo": "bicicleta"},
-    {"slot": "slot_10", "label": "V-01", "tipo": "vip"},
-]
-
-# Estado interno del simulador
-estado_slots = {
-    s["slot"]: {
-        "status":       random.choice(["libre", "libre", "ocupado"]),
-        "tipo":         s["tipo"],
-        "label":        s["label"],
-        "distancia_cm": random.uniform(20, 80),
-    }
-    for s in SLOTS
-}
-
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("[OK] Simulador conectado al broker HiveMQ")
-        client.subscribe("servo/control")
-        print("[OK] Escuchando servo/control ...\n")
-        publicar_estado_masivo(client)
+        client.subscribe("talanquera/control")
+        print("[OK] Escuchando talanquera/control ...\n")
+        # Publicar estado inicial: barrera cerrada
+        client.publish("parqueadero/entrada", json.dumps({"libre": False}))
+        print("[INFO] Estado inicial publicado → barrera CERRADA")
     else:
         print(f"[ERROR] Error de conexion: {rc}")
 
 
 def on_message(client, userdata, msg):
-    """Recibe comandos del servo desde el PC o backend."""
+    """Simula la respuesta del servo al recibir un comando del backend."""
     payload = msg.payload.decode()
     try:
         data = json.loads(payload)
     except ValueError:
         data = {"raw": payload}
-    print(f"\n[servo/control] Comando recibido: {data}")
+
     angulo = data.get("angulo", 90)
-    accion = "ABIERTA" if angulo >= 90 else "CERRADA"
-    print(f"    -> Barrera {accion} (angulo={angulo} grados)")
+    accion = data.get("accion", "abrir" if angulo >= 90 else "cerrar")
+
+    estado_barrera = accion == "abrir"
+    estado_str = "ABIERTA" if estado_barrera else "CERRADA"
+    print(f"\n[talanquera/control] Comando recibido: angulo={angulo}, accion={accion}")
+    print(f"    → Barrera simulada: {estado_str}")
+
+    # Confirmar al backend
     client.publish("servo/estado", json.dumps({
         "angulo": angulo,
         "estado": "ok",
-        "accion": accion.lower(),
+        "accion": accion,
     }))
+    # Actualizar estado de la barrera
+    client.publish("parqueadero/entrada", json.dumps({"libre": estado_barrera}))
 
-
-def publicar_estado_masivo(client):
-    espacios = []
-    for slot_id, info in estado_slots.items():
-        espacios.append({
-            "slot":         slot_id,
-            "label":        info["label"],
-            "status":       info["status"],
-            "tipo":         info["tipo"],
-            "distancia_cm": round(info["distancia_cm"], 1),
-        })
-    client.publish("parqueadero/espacios", json.dumps({"espacios": espacios}))
-    libres   = sum(1 for s in estado_slots.values() if s["status"] == "libre")
-    ocupados = len(estado_slots) - libres
-    print(f"[INFO] Estado masivo publicado -> Libres: {libres}  Ocupados: {ocupados}")
-
-
-def loop_sensores(client):
-    """Simula los sensores cambiando aleatoriamente el estado de los 10 cajones."""
-    while True:
+    if estado_barrera:
+        # Simular que la barrera se cierra automáticamente después de 5 segundos
         time.sleep(5)
-
-        # Cambiar 1-3 cajones aleatoriamente
-        slots_cambiados = random.sample(list(estado_slots.keys()), k=random.randint(1, 3))
-        for slot_id in slots_cambiados:
-            info = estado_slots[slot_id]
-            if info["status"] == "libre":
-                info["status"]       = "ocupado"
-                info["distancia_cm"] = round(random.uniform(3, 12), 1)
-            else:
-                info["status"]       = "libre"
-                info["distancia_cm"] = round(random.uniform(25, 90), 1)
-
-            # Publicar con el slot_id canónico ("slot_01", "slot_02", etc.)
-            payload = {
-                "slot":      slot_id,
-                "distancia": info["distancia_cm"],
-                "tipo":      info["tipo"],
-                "label":     info["label"],
-            }
-            client.publish("sensores/ultrasonico", json.dumps(payload))
-            print(f"[sensor] {slot_id} ({info['label']}) {info['tipo']:10s} -> {info['distancia_cm']:5.1f} cm  ({info['status']})")
-
-        publicar_estado_masivo(client)
+        client.publish("talanquera/control", json.dumps({"angulo": 0, "accion": "cerrar"}))
 
 
 client = mqtt.Client(client_id="smartparku-simulador-rpi")
@@ -138,8 +83,4 @@ client.on_message = on_message
 
 print(f"[...] Conectando a {BROKER}:{PORT} ...")
 client.connect(BROKER, PORT)
-
-# Iniciar loop de sensores en hilo aparte
-threading.Thread(target=loop_sensores, args=(client,), daemon=True).start()
-
 client.loop_forever()

@@ -15,7 +15,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="SmartParkU - Backend",
-    description="API de autenticación, sensores IoT y control de acceso para SmartParkU UCC",
+    description="API de control de acceso trimodal y gestión de parqueadero para SmartParkU UCC",
     version="2.0.0",
     lifespan=lifespan
 )

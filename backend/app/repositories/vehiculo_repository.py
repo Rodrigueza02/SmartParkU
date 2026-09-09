@@ -24,20 +24,22 @@ class VehiculoRepository:
     def get_by_placa(self, placa: str) -> Vehiculo | None:
         return self.db.query(Vehiculo).filter(Vehiculo.placa == placa).first()
 
-    def create(self, placa: str, tipo: str, id_usuario: int) -> Vehiculo:
-        vehiculo = Vehiculo(placa=placa, tipo=tipo, id_usuario=id_usuario)
+    def create(self, placa: str, tipo: str, id_usuario: int, rfid_tag_id: str | None = None) -> Vehiculo:
+        vehiculo = Vehiculo(placa=placa, tipo=tipo, id_usuario=id_usuario, rfid_tag_id=rfid_tag_id)
         self.db.add(vehiculo)
         self.db.commit()
         self.db.refresh(vehiculo)
         return vehiculo
 
-    def update(self, vehiculo: Vehiculo, placa: str | None, tipo: str | None, id_usuario: int | None) -> Vehiculo:
+    def update(self, vehiculo: Vehiculo, placa: str | None, tipo: str | None, id_usuario: int | None, rfid_tag_id: str | None = None) -> Vehiculo:
         if placa is not None:
             vehiculo.placa = placa
         if tipo is not None:
             vehiculo.tipo = tipo
         if id_usuario is not None:
             vehiculo.id_usuario = id_usuario
+        if rfid_tag_id is not None:
+            vehiculo.rfid_tag_id = rfid_tag_id
         self.db.commit()
         self.db.refresh(vehiculo)
         return vehiculo

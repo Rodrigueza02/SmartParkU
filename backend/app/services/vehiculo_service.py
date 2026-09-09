@@ -52,6 +52,7 @@ class VehiculoService:
             placa=data.placa,
             tipo=data.tipo,
             id_usuario=data.id_usuario,
+            rfid_tag_id=data.rfid_tag_id,
         )
         return VehiculoResponse.model_validate(vehiculo)
 
@@ -64,6 +65,7 @@ class VehiculoService:
             placa=data.placa,
             tipo=data.tipo,
             id_usuario=data.id_usuario,
+            rfid_tag_id=data.rfid_tag_id,
         )
         return VehiculoResponse.model_validate(vehiculo)
 

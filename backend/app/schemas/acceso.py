@@ -29,6 +29,7 @@ class AccesoResponse(BaseModel):
     hora_entrada: Optional[datetime] = None
     hora_salida:  Optional[datetime] = None
     metodo:      Optional[str] = None
+    puesto_confirmado_en: Optional[datetime] = None
 
     class Config:
         from_attributes = True

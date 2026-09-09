@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-SmartParkU - Test rapido de publicacion MQTT (paho-mqtt 2.x)
+SmartParkU - Test rápido de publicación MQTT (paho-mqtt 2.x)
+
+Prueba la integración con el broker enviando comandos de talanquera
+y actualizaciones de estado de la barrera.
+
+Ya NO publica mensajes de sensores de ocupación de celda — eso se
+gestiona exclusivamente vía API REST (escaneo QR desde la app).
 
 Modos de uso:
   - HiveMQ Cloud (produccion):  python test_pub.py
@@ -17,7 +23,6 @@ import os
 
 load_dotenv()
 
-# Detectar si se pasa --local para usar Mosquitto del docker-compose
 USE_LOCAL = "--local" in sys.argv
 
 if USE_LOCAL:
@@ -39,46 +44,27 @@ def on_connect(client, userdata, flags, reason_code, properties):
         print(f"[OK] Conectado a {BROKER}")
         print("[...] Enviando mensajes de prueba...\n")
 
-        # slot_01 ocupado (8 cm = vehiculo presente) — C-01 carro
-        client.publish("sensores/ultrasonico", json.dumps(
-            {"slot": "slot_01", "distancia": 8, "tipo": "carro", "label": "C-01"}
-        ))
-        print("[->] slot_01 (C-01)  distancia=8cm   tipo=carro  -> OCUPADO")
-        time.sleep(0.4)
+        # Test 1: Abrir talanquera
+        client.publish("talanquera/control", json.dumps({"angulo": 90, "accion": "abrir"}))
+        print("[->] talanquera/control  angulo=90  accion=abrir  → BARRERA ABIERTA")
+        time.sleep(1)
 
-        # slot_02 libre (60 cm) — C-02 carro
-        client.publish("sensores/ultrasonico", json.dumps(
-            {"slot": "slot_02", "distancia": 60, "tipo": "carro", "label": "C-02"}
-        ))
-        print("[->] slot_02 (C-02)  distancia=60cm  tipo=carro  -> LIBRE")
-        time.sleep(0.4)
-
-        # slot_05 moto ocupado — M-01
-        client.publish("sensores/ultrasonico", json.dumps(
-            {"slot": "slot_05", "distancia": 5, "tipo": "moto", "label": "M-01"}
-        ))
-        print("[->] slot_05 (M-01)  distancia=5cm   tipo=moto   -> OCUPADO")
-        time.sleep(0.4)
-
-        # slot_08 bicicleta libre — B-01
-        client.publish("sensores/ultrasonico", json.dumps(
-            {"slot": "slot_08", "distancia": 45, "tipo": "bicicleta", "label": "B-01"}
-        ))
-        print("[->] slot_08 (B-01)  distancia=45cm  tipo=bici   -> LIBRE")
-        time.sleep(0.4)
-
-        # slot_10 VIP libre — V-01
-        client.publish("sensores/ultrasonico", json.dumps(
-            {"slot": "slot_10", "distancia": 70, "tipo": "vip", "label": "V-01"}
-        ))
-        print("[->] slot_10 (V-01)  distancia=70cm  tipo=vip    -> LIBRE")
-        time.sleep(0.4)
-
-        # Estado barrera abierta
+        # Test 2: Barrera principal marcada como libre (abierta)
         client.publish("parqueadero/entrada", json.dumps({"libre": True}))
-        print("[->] parqueadero/entrada  libre=true  -> BARRERA ABIERTA")
+        print("[->] parqueadero/entrada  libre=true  → BARRERA ABIERTA")
+        time.sleep(1)
 
-        print("\n[OK] Mensajes enviados. Mira el dashboard_mqtt.py en la otra terminal.")
+        # Test 3: Cerrar talanquera
+        client.publish("talanquera/control", json.dumps({"angulo": 0, "accion": "cerrar"}))
+        print("[->] talanquera/control  angulo=0   accion=cerrar → BARRERA CERRADA")
+        time.sleep(1)
+
+        # Test 4: Barrera cerrada
+        client.publish("parqueadero/entrada", json.dumps({"libre": False}))
+        print("[->] parqueadero/entrada  libre=false → BARRERA CERRADA")
+
+        print("\n[OK] Mensajes de prueba enviados.")
+        print("     Nota: el estado de ocupación de celdas se gestiona via API REST (QR).")
         client.disconnect()
     else:
         codigos = {
@@ -93,7 +79,7 @@ def on_connect(client, userdata, flags, reason_code, properties):
 
 
 def on_disconnect(client, userdata, flags, reason_code, properties):
-    print(f"[--] Desconectado")
+    print("[--] Desconectado")
 
 
 client = mqtt.Client(

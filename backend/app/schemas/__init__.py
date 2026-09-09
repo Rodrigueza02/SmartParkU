@@ -13,6 +13,14 @@ from app.schemas.qr import (
     QREscanearRequest,
     QREscanearResponse,
 )
+from app.schemas.ingreso import (
+    IngresoRFIDRequest,
+    IngresoCarnetRequest,
+    IngresoQREntradaRequest,
+    OcuparPuestoRequest,
+    IngresoResponse,
+    OcuparPuestoResponse,
+)
 
 __all__ = [
     "LoginRequest", "UserResponse", "TokenResponse",
@@ -22,4 +30,6 @@ __all__ = [
     "VehiculoCreate", "VehiculoUpdate", "VehiculoResponse",
     "AccesoCreate", "AccesoUpdate", "AccesoResponse",
     "QRGenerarRequest", "QRGeneradoResponse", "QREscanearRequest", "QREscanearResponse",
+    "IngresoRFIDRequest", "IngresoCarnetRequest", "IngresoQREntradaRequest",
+    "OcuparPuestoRequest", "IngresoResponse", "OcuparPuestoResponse",
 ]

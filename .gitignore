@@ -37,6 +37,9 @@ mobile/build/
 mobile/.packages
 mobile/pubspec.lock
 
+# ─── Docker / Datos locales ──────────────────────────────────────────────────
+data/
+
 # ─── Editores y OS ────────────────────────────────────────────────────────────
 .vscode/settings.json
 .DS_Store

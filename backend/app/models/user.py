@@ -12,4 +12,6 @@ class Usuario(Base):
     password = Column(String(100), nullable=False)
     rol = Column(String(50), nullable=False)
     estado = Column(String(50), default="Activo")
+    # Identificador del carnet universitario (código de barras, QR institucional o NFC)
+    carnet_id = Column(String(100), unique=True, nullable=True, index=True)
 

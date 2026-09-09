@@ -1,4 +1,3 @@
-
 from sqlalchemy.orm import Session
 from app.repositories import ParkingRepository
 from app.schemas import ParkingEstadoResponse, EspacioParqueoResponse
@@ -11,6 +10,11 @@ class ParkingService:
         self.parking_repo = ParkingRepository(db)
 
     def get_parking_slots(self) -> ParkingEstadoResponse:
+        """
+        Combina los espacios de la BD con el estado en memoria (parking_state).
+        La fuente de verdad del estado de ocupación es la BD (actualizada por QR);
+        parking_state se usa sólo para el broadcast WebSocket del mapa.
+        """
         espacios_db = self.parking_repo.get_all()
         resultado = []
 
@@ -23,8 +27,8 @@ class ParkingService:
                     label=s["label"],
                     tipo=s["tipo"],
                     status=estado_live.get("status", "libre"),
-                    distancia_cm=estado_live.get("distancia_cm"),
                     updated_at=estado_live.get("updated_at"),
+                    qr_identifier=None,
                 ))
         else:
             for espacio in espacios_db:
@@ -34,9 +38,10 @@ class ParkingService:
                     slot_id=espacio.slot_id,
                     label=espacio.label,
                     tipo=espacio.tipo,
+                    # La BD es la fuente de verdad; el estado en memoria es fallback de red
                     status=estado_live.get("status", espacio.status),
-                    distancia_cm=estado_live.get("distancia_cm", espacio.distancia_cm),
-                    updated_at=estado_live.get("updated_at", espacio.updated_at),
+                    updated_at=estado_live.get("updated_at") or espacio.updated_at,
+                    qr_identifier=espacio.qr_identifier,
                 ))
 
         total_libre = sum(1 for e in resultado if e.status == "libre")
@@ -46,6 +51,5 @@ class ParkingService:
             espacios=resultado,
             total_libre=total_libre,
             total_ocupado=total_ocupado,
-            total_espacios=len(resultado)
+            total_espacios=len(resultado),
         )
-
