@@ -66,12 +66,15 @@ let reconnectDelay  = 3000;
 const MAX_DELAY     = 30_000;
 let intentionalClose = false;   // bandera para no reconectar cuando es un cierre limpio
 
-const WS_URL   = typeof window !== 'undefined'
-  ? `ws://${window.location.hostname}:8000/api/v1/parking/ws/parking`
-  : 'ws://localhost:8000/api/v1/parking/ws/parking';
-const API_BASE = typeof window !== 'undefined'
-  ? `http://${window.location.hostname}:8000`
-  : 'http://localhost:8000';
+// En producción (Vercel) se usan las variables de entorno NEXT_PUBLIC_*
+// En desarrollo local se infiere desde el hostname del navegador como fallback
+const API_BASE = process.env.NEXT_PUBLIC_API_URL
+  ?? (typeof window !== 'undefined' ? `http://${window.location.hostname}:8000` : 'http://localhost:8000');
+
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL
+  ?? (typeof window !== 'undefined'
+    ? `ws://${window.location.hostname}:8000/api/v1/parking/ws/parking`
+    : 'ws://localhost:8000/api/v1/parking/ws/parking');
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 export const useParkingStore = create<ParkingState>((set, get) => ({

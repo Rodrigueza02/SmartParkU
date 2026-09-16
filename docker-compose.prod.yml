@@ -1,0 +1,45 @@
+services:
+
+  # ─── Base de datos PostgreSQL ───────────────────────────────────────────────
+  db:
+    image: postgres:15
+    container_name: smartparku_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - smartparku_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Backend FastAPI ────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: smartparku_backend
+    restart: always
+    command: bash start.sh
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.production
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - smartparku_net
+
+volumes:
+  postgres_data:
+
+networks:
+  smartparku_net:
+    driver: bridge
