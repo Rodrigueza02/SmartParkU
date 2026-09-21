@@ -1,6 +1,33 @@
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional
+
+
+class RegisterRequest(BaseModel):
+    nombre: str
+    correo: EmailStr
+    password: str
+    carnet_id: Optional[str] = None
+
+    @field_validator('nombre')
+    @classmethod
+    def validate_nombre(cls, v):
+        if not v or len(v.strip()) < 3:
+            raise ValueError('El nombre debe tener al menos 3 caracteres')
+        return v.strip()
+
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v):
+        if len(v) < 6:
+            raise ValueError('La contraseña debe tener al menos 6 caracteres')
+        return v
+
+
+class RegisterResponse(BaseModel):
+    mensaje: str
+    id_usuario: int
+    correo: str
 
 
 class LoginRequest(BaseModel):

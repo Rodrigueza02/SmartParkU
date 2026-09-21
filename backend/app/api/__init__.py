@@ -6,6 +6,7 @@ from app.api.vehiculos import router as vehiculos_router
 from app.api.accesos import router as accesos_router
 from app.api.qr import router as qr_router
 from app.api.ingreso import router as ingreso_router
+from app.api.alertas import router as alertas_router
 
 api_router = APIRouter()
 api_router.include_router(auth_router)
@@ -14,3 +15,4 @@ api_router.include_router(ingreso_router)
 api_router.include_router(vehiculos_router)
 api_router.include_router(accesos_router)
 api_router.include_router(qr_router)
+api_router.include_router(alertas_router)

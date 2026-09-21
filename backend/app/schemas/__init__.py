@@ -1,6 +1,7 @@
 
 from app.schemas.auth import (
     LoginRequest, UserResponse, TokenResponse,
+    RegisterRequest, RegisterResponse,
     ForgotPasswordRequest, ForgotPasswordResponse,
     ResetPasswordRequest, ResetPasswordResponse,
 )
@@ -21,9 +22,16 @@ from app.schemas.ingreso import (
     IngresoResponse,
     OcuparPuestoResponse,
 )
+from app.schemas.alerta import (
+    AlertaCreate,
+    AlertaResponse,
+    AlertaUpdate,
+    AlertaListResponse,
+)
 
 __all__ = [
     "LoginRequest", "UserResponse", "TokenResponse",
+    "RegisterRequest", "RegisterResponse",
     "ForgotPasswordRequest", "ForgotPasswordResponse",
     "ResetPasswordRequest", "ResetPasswordResponse",
     "EspacioParqueoBase", "EspacioParqueoResponse", "ParkingEstadoResponse",
@@ -32,4 +40,5 @@ __all__ = [
     "QRGenerarRequest", "QRGeneradoResponse", "QREscanearRequest", "QREscanearResponse",
     "IngresoRFIDRequest", "IngresoCarnetRequest", "IngresoQREntradaRequest",
     "OcuparPuestoRequest", "IngresoResponse", "OcuparPuestoResponse",
+    "AlertaCreate", "AlertaResponse", "AlertaUpdate", "AlertaListResponse",
 ]

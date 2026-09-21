@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Leaf, Car, Bike, Zap, AlertTriangle,
   User, MapPin, Navigation, LogOut, ShieldAlert, QrCode, Loader2,
 } from 'lucide-react';
 import StudentProfile from '@/components/StudentProfile';
 import ParkingMap from '@/components/ParkingMap';
+import AlertaForm from '@/components/AlertaForm';
 import { getApiBase } from '@/lib/api';
 import QRAcceso from '@/components/QRAcceso';
 import { useAuthStore } from '@/store/authStore';
@@ -57,6 +58,7 @@ const StudentDashboard = ({ user }: { user: any }) => {
   const [view, setView] = useState<ViewType>('map');
   const [accesoActivo, setAccesoActivo] = useState<any>(null);
   const [loadingExit, setLoadingExit] = useState(false);
+  const [showAlertaForm, setShowAlertaForm] = useState(false);
   const token = useAuthStore((s) => s.token);
 
   // Simulación de cambios en tiempo real (demo)
@@ -459,16 +461,47 @@ const StudentDashboard = ({ user }: { user: any }) => {
         {/* ── Vista Pánico ── */}
         {view === 'panic' && (
           <div className="px-5 py-6">
-            <div className="bg-red-50 rounded-[28px] p-6 border border-red-100 text-center">
-              <ShieldAlert size={44} className="mx-auto text-red-400 mb-3" />
-              <h2 className="text-xl font-black text-red-800 mb-2">Botón de Pánico</h2>
-              <p className="text-red-500 text-sm font-medium mb-6">
-                Úsalo solo en emergencias reales dentro del campus UCC.
-              </p>
-              <button className="w-full bg-red-500 text-white py-5 rounded-2xl font-black text-lg shadow-xl animate-pulse">
-                ACTIVAR ALERTA
-              </button>
-            </div>
+            <AnimatePresence>
+              {showAlertaForm ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                >
+                  <AlertaForm
+                    onClose={() => {
+                      setShowAlertaForm(false);
+                      setView('map');
+                    }}
+                    onSuccess={() => {
+                      setShowAlertaForm(false);
+                    }}
+                  />
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-gradient-to-br from-red-50 to-orange-50 rounded-[28px] p-6 border border-red-100 text-center"
+                >
+                  <ShieldAlert size={44} className="mx-auto text-red-400 mb-3" />
+                  <h2 className="text-xl font-black text-red-800 mb-2">Sistema de Alertas</h2>
+                  <p className="text-red-600 text-sm font-medium mb-6">
+                    Reporta situaciones inusuales o emergencias en el parqueadero. 
+                    Puedes adjuntar fotos o videos como evidencia.
+                  </p>
+                  <button
+                    onClick={() => setShowAlertaForm(true)}
+                    className="w-full bg-red-500 hover:bg-red-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl transition-all active:scale-[0.98]"
+                  >
+                    GENERAR ALERTA
+                  </button>
+                  <p className="text-xs text-red-400 mt-3 font-medium">
+                    Tu reporte será enviado inmediatamente al equipo de administración
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
 
@@ -477,10 +510,14 @@ const StudentDashboard = ({ user }: { user: any }) => {
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          onClick={() => setView('panic')}
-          className="w-12 h-12 bg-white rounded-full shadow-xl flex items-center justify-center border border-red-100 text-red-400"
+          onClick={() => {
+            setView('panic');
+            setShowAlertaForm(false);
+          }}
+          className="w-14 h-14 bg-red-500 hover:bg-red-600 rounded-full shadow-2xl flex items-center justify-center text-white transition-colors"
+          style={{ boxShadow: '0 8px 24px rgba(239,68,68,0.40)' }}
         >
-          <AlertTriangle size={22} />
+          <AlertTriangle size={24} />
         </motion.button>
       </div>
 

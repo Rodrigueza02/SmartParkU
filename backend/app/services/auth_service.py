@@ -4,13 +4,55 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.repositories import UserRepository
 from app.core import verify_password, create_access_token, get_password_hash
-from app.schemas import TokenResponse, ForgotPasswordResponse, ResetPasswordResponse
+from app.schemas import TokenResponse, ForgotPasswordResponse, ResetPasswordResponse, RegisterResponse
 
 
 class AuthService:
     def __init__(self, db: Session):
         self.db = db
         self.user_repo = UserRepository(db)
+
+    def register_student(self, nombre: str, correo: str, password: str, carnet_id: str = None) -> RegisterResponse:
+        """Registra un nuevo estudiante en el sistema."""
+        # Verificar si el correo ya está registrado
+        existing_user = self.user_repo.get_by_email(correo)
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="El correo ya está registrado. Por favor inicia sesión o recupera tu contraseña."
+            )
+        
+        # Verificar si el carnet_id ya existe (si se proporcionó)
+        if carnet_id:
+            from app.models import Usuario
+            existing_carnet = self.db.query(Usuario).filter(Usuario.carnet_id == carnet_id).first()
+            if existing_carnet:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="El carnet universitario ya está registrado."
+                )
+        
+        # Crear nuevo usuario con rol Estudiante
+        from app.models import Usuario
+        hashed_password = get_password_hash(password)
+        new_user = Usuario(
+            nombre=nombre,
+            correo=correo,
+            password=hashed_password,
+            rol="Estudiante",
+            estado="Activo",
+            carnet_id=carnet_id
+        )
+        
+        self.db.add(new_user)
+        self.db.commit()
+        self.db.refresh(new_user)
+        
+        return RegisterResponse(
+            mensaje="Cuenta creada exitosamente. Ya puedes iniciar sesión.",
+            id_usuario=new_user.id_usuario,
+            correo=new_user.correo
+        )
 
     def login(self, correo: str, password: str) -> TokenResponse:
         user = self.user_repo.get_by_email(correo)

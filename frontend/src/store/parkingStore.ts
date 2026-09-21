@@ -66,12 +66,16 @@ let reconnectDelay  = 3000;
 const MAX_DELAY     = 30_000;
 let intentionalClose = false;   // bandera para no reconectar cuando es un cierre limpio
 
-const WS_URL   = typeof window !== 'undefined'
-  ? `ws://${window.location.hostname}:8000/api/v1/parking/ws/parking`
-  : 'ws://localhost:8000/api/v1/parking/ws/parking';
+// Usar las variables de entorno configuradas en build time
+// NEXT_PUBLIC_API_URL ya incluye el protocolo correcto (https:// en Azure, http:// en local)
+// NEXT_PUBLIC_WS_URL ya incluye el protocolo correcto (wss:// en Azure, ws:// en local)
 const API_BASE = typeof window !== 'undefined'
-  ? `http://${window.location.hostname}:8000`
+  ? (process.env.NEXT_PUBLIC_API_URL || `http://${window.location.hostname}:8000`)
   : 'http://localhost:8000';
+
+const WS_URL = typeof window !== 'undefined'
+  ? (process.env.NEXT_PUBLIC_WS_URL || `ws://${window.location.hostname}:8000/api/v1/parking/ws/parking`)
+  : 'ws://localhost:8000/api/v1/parking/ws/parking';
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 export const useParkingStore = create<ParkingState>((set, get) => ({

@@ -263,9 +263,13 @@ export default function LoginPage() {
             className="text-center text-sm text-gray-400 font-medium"
           >
             ¿No tienes cuenta?{" "}
-            <span className="font-bold cursor-pointer hover:underline" style={{ color: "#6AB023" }}>
-              Solicita acceso
-            </span>
+            <button
+              onClick={() => router.push("/register")}
+              className="font-bold cursor-pointer hover:underline"
+              style={{ color: "#6AB023" }}
+            >
+              Crear cuenta
+            </button>
           </motion.p>
         </div>
       </div>

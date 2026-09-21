@@ -59,7 +59,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: smartparku_backend
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: bash -c "chmod +x /app/start.sh && /app/start.sh"
     volumes:
       - ./backend:/app
     ports:

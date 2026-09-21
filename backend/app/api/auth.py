@@ -1,15 +1,26 @@
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db import get_db
 from app.schemas import (
-    LoginRequest, TokenResponse,
+    LoginRequest, TokenResponse, RegisterRequest, RegisterResponse,
     ForgotPasswordRequest, ForgotPasswordResponse,
     ResetPasswordRequest, ResetPasswordResponse,
 )
 from app.services import AuthService
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
+
+
+@router.post("/register", response_model=RegisterResponse, status_code=201)
+def register(request: RegisterRequest, db: Session = Depends(get_db)):
+    """Registra un nuevo estudiante en el sistema."""
+    return AuthService(db).register_student(
+        nombre=request.nombre,
+        correo=request.correo,
+        password=request.password,
+        carnet_id=request.carnet_id
+    )
 
 
 @router.post("/login", response_model=TokenResponse)
