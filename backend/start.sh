@@ -1,7 +1,11 @@
 #!/bin/bash
-# Script de inicio del backend que aplica migraciones y luego inicia el servidor
+# Script de inicio del backend que espera la BD, aplica migraciones e inicia el servidor
 
 set -e  # Salir si cualquier comando falla
+
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  SmartParkU - Iniciando en producción"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 echo "🔄 Esperando a que la base de datos esté lista..."
 python << END
@@ -32,5 +36,8 @@ alembic upgrade head
 
 echo "✅ Migraciones aplicadas correctamente"
 
+echo "🔄 Poblando datos iniciales..."
+python -m app.initial_data
+
 echo "🚀 Iniciando servidor FastAPI..."
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
