@@ -14,12 +14,15 @@ router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
 @router.post("/register", response_model=RegisterResponse, status_code=201)
 def register(request: RegisterRequest, db: Session = Depends(get_db)):
-    """Registra un nuevo estudiante en el sistema."""
+    """Registra un nuevo usuario en el sistema, opcionalmente con vehículo."""
     return AuthService(db).register_student(
         nombre=request.nombre,
         correo=request.correo,
         password=request.password,
-        carnet_id=request.carnet_id
+        carnet_id=request.carnet_id,
+        rol=request.rol,
+        tipo_vehiculo=request.tipo_vehiculo,
+        placa_vehiculo=request.placa_vehiculo
     )
 
 

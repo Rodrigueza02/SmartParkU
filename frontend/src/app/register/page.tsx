@@ -2,15 +2,36 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, User as UserIcon, ChevronRight, Loader2, ArrowLeft, IdCard } from "lucide-react";
+import { 
+  Mail, Lock, User as UserIcon, ChevronRight, Loader2, ArrowLeft, 
+  IdCard, Car, Bike, Zap, Users, Briefcase, UserPlus, CreditCard 
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getApiBase } from "@/lib/api";
+
+const ROLES_DISPONIBLES = [
+  { value: 'Estudiante', label: 'Estudiante', icon: UserPlus, color: '#00AEEF' },
+  { value: 'Docente', label: 'Docente', icon: Briefcase, color: '#6AB023' },
+  { value: 'Administrativo', label: 'Administrativo', icon: Users, color: '#1E3A5F' },
+  { value: 'Invitado', label: 'Invitado', icon: UserIcon, color: '#B5D334' },
+  { value: 'VIP', label: 'VIP', icon: CreditCard, color: '#1E3A5F' },
+] as const;
+
+const TIPOS_VEHICULO = [
+  { value: 'carro', label: 'Carro', icon: Car, color: '#00AEEF' },
+  { value: 'moto', label: 'Motocicleta', icon: Bike, color: '#6AB023' },
+  { value: 'bicicleta', label: 'Bicicleta', icon: Zap, color: '#B5D334' },
+  { value: 'vip', label: 'VIP', icon: Car, color: '#1E3A5F' },
+] as const;
 
 export default function RegisterPage() {
   const [nombre, setNombre] = useState("");
   const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
   const [carnetId, setCarnetId] = useState("");
+  const [rol, setRol] = useState<string>("Estudiante");
+  const [tipoVehiculo, setTipoVehiculo] = useState<string>("");
+  const [placaVehiculo, setPlacaVehiculo] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -22,16 +43,29 @@ export default function RegisterPage() {
     setLoading(true);
     setError("");
     
+    // Validación: si se seleccionó tipo de vehículo, la placa es obligatoria
+    if (tipoVehiculo && !placaVehiculo) {
+      setError("Si seleccionas un tipo de vehículo, debes ingresar la placa");
+      setLoading(false);
+      return;
+    }
+    
     try {
+      const body: any = {
+        nombre,
+        correo,
+        password,
+        rol,
+      };
+      
+      if (carnetId) body.carnet_id = carnetId;
+      if (tipoVehiculo) body.tipo_vehiculo = tipoVehiculo;
+      if (placaVehiculo) body.placa_vehiculo = placaVehiculo;
+      
       const response = await fetch(`${getApiBase()}/api/v1/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nombre,
-          correo,
-          password,
-          carnet_id: carnetId || null
-        }),
+        body: JSON.stringify(body),
       });
       
       const data = await response.json();
@@ -43,7 +77,7 @@ export default function RegisterPage() {
       setSuccess(true);
       setTimeout(() => {
         router.push("/");
-      }, 2000);
+      }, 2500);
       
     } catch (err: any) {
       setError(err.message || "Error al conectar con el servidor");
@@ -106,7 +140,7 @@ export default function RegisterPage() {
         <div className="absolute top-[-10%] right-[-5%] w-72 h-72 bg-[#00AEEF]/8 rounded-full blur-[80px]" />
         <div className="absolute bottom-[-10%] left-[-5%] w-72 h-72 bg-[#6AB023]/8 rounded-full blur-[80px]" />
 
-        <div className="w-full max-w-md relative z-10">
+        <div className="w-full max-w-md relative z-10 max-h-screen overflow-y-auto py-6">
           {/* Botón volver */}
           <motion.button
             whileTap={{ scale: 0.95 }}
@@ -151,7 +185,7 @@ export default function RegisterPage() {
               {/* Nombre completo */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold ml-1 uppercase tracking-widest block" style={{ color: "#1E3A5F" }}>
-                  Nombre Completo
+                  Nombre Completo *
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
@@ -172,7 +206,7 @@ export default function RegisterPage() {
               {/* Correo */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold ml-1 uppercase tracking-widest block" style={{ color: "#1E3A5F" }}>
-                  Correo Institucional
+                  Correo Institucional *
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
@@ -189,10 +223,29 @@ export default function RegisterPage() {
                 </div>
               </div>
 
+              {/* Carnet ID */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold ml-1 uppercase tracking-widest block" style={{ color: "#1E3A5F" }}>
+                  Documento / Carnet <span className="text-gray-400 normal-case">(Opcional)</span>
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                    <IdCard className="w-4 h-4 text-gray-300 group-focus-within:text-[#00AEEF] transition-colors" />
+                  </div>
+                  <input
+                    type="text"
+                    value={carnetId}
+                    onChange={(e) => setCarnetId(e.target.value)}
+                    placeholder="123456789"
+                    className="w-full pl-11 pr-4 py-3.5 rounded-2xl text-sm font-medium text-gray-700 placeholder:text-gray-300 outline-none transition-all bg-gray-50 border-2 border-transparent focus:border-[#00AEEF50] focus:bg-white"
+                  />
+                </div>
+              </div>
+
               {/* Contraseña */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold ml-1 uppercase tracking-widest block" style={{ color: "#1E3A5F" }}>
-                  Contraseña
+                  Contraseña *
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
@@ -210,24 +263,122 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Carnet ID (opcional) */}
-              <div className="space-y-1.5">
+              {/* Selector de Rol */}
+              <div className="space-y-2">
                 <label className="text-xs font-bold ml-1 uppercase tracking-widest block" style={{ color: "#1E3A5F" }}>
-                  Carnet Universitario <span className="text-gray-400 normal-case">(Opcional)</span>
+                  Rol *
                 </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                    <IdCard className="w-4 h-4 text-gray-300 group-focus-within:text-[#00AEEF] transition-colors" />
-                  </div>
-                  <input
-                    type="text"
-                    value={carnetId}
-                    onChange={(e) => setCarnetId(e.target.value)}
-                    placeholder="123456789"
-                    className="w-full pl-11 pr-4 py-3.5 rounded-2xl text-sm font-medium text-gray-700 placeholder:text-gray-300 outline-none transition-all bg-gray-50 border-2 border-transparent focus:border-[#00AEEF50] focus:bg-white"
-                  />
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {ROLES_DISPONIBLES.map((rolItem) => {
+                    const Icon = rolItem.icon;
+                    const isSelected = rol === rolItem.value;
+                    return (
+                      <motion.button
+                        key={rolItem.value}
+                        type="button"
+                        whileTap={{ scale: 0.96 }}
+                        onClick={() => setRol(rolItem.value)}
+                        className="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all"
+                        style={
+                          isSelected
+                            ? {
+                                borderColor: rolItem.color,
+                                background: `${rolItem.color}15`,
+                              }
+                            : {
+                                borderColor: '#e2e8f0',
+                                background: '#fff',
+                              }
+                        }
+                      >
+                        <Icon
+                          size={20}
+                          style={{ color: isSelected ? rolItem.color : '#94a3b8' }}
+                          strokeWidth={isSelected ? 2.5 : 2}
+                        />
+                        <span
+                          className="text-[10px] font-bold text-center leading-tight"
+                          style={{ color: isSelected ? rolItem.color : '#94a3b8' }}
+                        >
+                          {rolItem.label}
+                        </span>
+                      </motion.button>
+                    );
+                  })}
                 </div>
               </div>
+
+              {/* Tipo de Vehículo (Opcional) */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold ml-1 uppercase tracking-widest block" style={{ color: "#1E3A5F" }}>
+                  Tipo de Vehículo <span className="text-gray-400 normal-case">(Opcional)</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {TIPOS_VEHICULO.map((tipo) => {
+                    const Icon = tipo.icon;
+                    const isSelected = tipoVehiculo === tipo.value;
+                    return (
+                      <motion.button
+                        key={tipo.value}
+                        type="button"
+                        whileTap={{ scale: 0.96 }}
+                        onClick={() => setTipoVehiculo(isSelected ? "" : tipo.value)}
+                        className="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all"
+                        style={
+                          isSelected
+                            ? {
+                                borderColor: tipo.color,
+                                background: `${tipo.color}15`,
+                              }
+                            : {
+                                borderColor: '#e2e8f0',
+                                background: '#fff',
+                              }
+                        }
+                      >
+                        <Icon
+                          size={20}
+                          style={{ color: isSelected ? tipo.color : '#94a3b8' }}
+                          strokeWidth={isSelected ? 2.5 : 2}
+                        />
+                        <span
+                          className="text-[10px] font-bold"
+                          style={{ color: isSelected ? tipo.color : '#94a3b8' }}
+                        >
+                          {tipo.label}
+                        </span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Placa del Vehículo (condicional) */}
+              {tipoVehiculo && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-1.5"
+                >
+                  <label className="text-xs font-bold ml-1 uppercase tracking-widest block" style={{ color: "#1E3A5F" }}>
+                    Placa del Vehículo *
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                      <CreditCard className="w-4 h-4 text-gray-300 group-focus-within:text-[#00AEEF] transition-colors" />
+                    </div>
+                    <input
+                      type="text"
+                      required={!!tipoVehiculo}
+                      value={placaVehiculo}
+                      onChange={(e) => setPlacaVehiculo(e.target.value.toUpperCase())}
+                      placeholder="ABC123"
+                      className="w-full pl-11 pr-4 py-3.5 rounded-2xl text-sm font-medium text-gray-700 placeholder:text-gray-300 outline-none transition-all bg-gray-50 border-2 border-transparent focus:border-[#00AEEF50] focus:bg-white uppercase"
+                    />
+                  </div>
+                </motion.div>
+              )}
 
               {/* Botón submit */}
               <button

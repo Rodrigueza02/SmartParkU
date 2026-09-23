@@ -54,9 +54,11 @@ class QRService:
                 detail=f"Usuario con id {data.id_usuario} no encontrado"
             )
 
-        # 2. Si se proporciona vehículo, obtener su tipo para filtrar espacio compatible
-        tipo_vehiculo: str | None = None
-        if data.id_vehiculo is not None:
+        # 2. Determinar el tipo de vehículo
+        tipo_vehiculo: str | None = data.tipo_vehiculo
+        
+        # Si no se especificó tipo pero se proporcionó id_vehiculo, obtener el tipo del vehículo
+        if not tipo_vehiculo and data.id_vehiculo is not None:
             vehiculo = self.db.query(Vehiculo).filter(
                 Vehiculo.id_vehiculo == data.id_vehiculo
             ).first()

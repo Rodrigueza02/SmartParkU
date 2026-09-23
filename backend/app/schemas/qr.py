@@ -12,10 +12,11 @@ from datetime import datetime
 class QRGenerarRequest(BaseModel):
     """
     Datos necesarios para generar un QR de acceso al parqueadero.
-    El frontend envía el id del usuario autenticado.
+    El frontend envía el id del usuario autenticado y opcionalmente el tipo de vehículo.
     """
     id_usuario: int
     id_vehiculo: Optional[int] = None
+    tipo_vehiculo: Optional[str] = None  # "carro", "moto", "bicicleta", "vip"
 
 
 class QRGeneradoResponse(BaseModel):

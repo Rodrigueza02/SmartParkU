@@ -11,14 +11,20 @@ echo "🔄 Esperando a que la base de datos esté lista..."
 python << END
 import time
 import psycopg
-from app.core.config import settings
 
 max_attempts = 30
 attempt = 0
 
 while attempt < max_attempts:
     try:
-        conn = psycopg.connect(settings.DATABASE_URL)
+        # Conectar directamente con los parámetros
+        conn = psycopg.connect(
+            host="db",
+            port=5432,
+            dbname="smartparku",
+            user="postgres",
+            password="postgres"
+        )
         conn.close()
         print("✅ Base de datos conectada!")
         break
@@ -26,6 +32,7 @@ while attempt < max_attempts:
         attempt += 1
         if attempt == max_attempts:
             print(f"❌ Error: No se pudo conectar a la base de datos después de {max_attempts} intentos")
+            print(f"Error: {e}")
             exit(1)
         print(f"⏳ Intento {attempt}/{max_attempts}... Reintentando en 2 segundos")
         time.sleep(2)

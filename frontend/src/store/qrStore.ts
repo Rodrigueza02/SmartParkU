@@ -55,7 +55,7 @@ interface QRState {
   error: string | null;
   secondsLeft: number;
 
-  generarQR:  (id_usuario: number, id_vehiculo?: number) => Promise<void>;
+  generarQR:  (id_usuario: number, id_vehiculo?: number, tipo_vehiculo?: string) => Promise<void>;
   escanearQR: (qr_token: string) => Promise<void>;
   setStep:    (step: QRStep) => void;
   reset:      () => void;
@@ -73,7 +73,7 @@ export const useQRStore = create<QRState>((set, get) => ({
 
   setStep: (step) => set({ step }),
 
-  generarQR: async (id_usuario, id_vehiculo) => {
+  generarQR: async (id_usuario, id_vehiculo, tipo_vehiculo) => {
     set({ step: 'generating', error: null, qrGenerado: null, acceso: null });
     try {
       // Obtener token desde authStore
@@ -86,6 +86,7 @@ export const useQRStore = create<QRState>((set, get) => ({
 
       const body: Record<string, unknown> = { id_usuario };
       if (id_vehiculo) body.id_vehiculo = id_vehiculo;
+      if (tipo_vehiculo) body.tipo_vehiculo = tipo_vehiculo;
 
       const res = await fetch(`${getApiBase()}/api/v1/qr/generar`, {
         method: 'POST',

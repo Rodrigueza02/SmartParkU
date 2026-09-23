@@ -41,6 +41,14 @@ interface QRAccesoProps {
   idVehiculo?: number;
 }
 
+// Tipos de vehículo disponibles
+const TIPOS_VEHICULO = [
+  { value: 'carro', label: 'Carro', icon: Car, color: '#00AEEF' },
+  { value: 'moto', label: 'Motocicleta', icon: Bike, color: '#6AB023' },
+  { value: 'bicicleta', label: 'Bicicleta', icon: Zap, color: '#B5D334' },
+  { value: 'vip', label: 'VIP', icon: Car, color: '#1E3A5F' },
+] as const;
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatTime(s: number) {
   const m = Math.floor(s / 60).toString().padStart(2, '0');
@@ -92,11 +100,12 @@ function SimularEscaneoBtn() {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PANTALLA 1 — Solicitar QR
-// Muestra botón "Generar QR" y, una vez generado, la imagen con cuenta regresiva
+// Muestra selector de tipo de vehículo, botón "Generar QR" y, una vez generado, la imagen con cuenta regresiva
 // ─────────────────────────────────────────────────────────────────────────────
 function PantallaSolicitarQR({ idUsuario, idVehiculo }: QRAccesoProps) {
   const { step, qrGenerado, secondsLeft, generarQR, tickTimer } = useQRStore();
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [tipoSeleccionado, setTipoSeleccionado] = useState<string>('');
 
   // Arrancar cuenta regresiva cuando hay QR visible
   useEffect(() => {
@@ -105,6 +114,16 @@ function PantallaSolicitarQR({ idUsuario, idVehiculo }: QRAccesoProps) {
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [step, tickTimer]);
+
+  const urgente = secondsLeft < 60 && secondsLeft > 0;
+
+  const handleGenerarQR = () => {
+    if (!tipoSeleccionado) {
+      alert('Por favor selecciona el tipo de vehículo');
+      return;
+    }
+    generarQR(idUsuario, idVehiculo, tipoSeleccionado);
+  };
 
   const urgente = secondsLeft < 60 && secondsLeft > 0;
 
@@ -206,7 +225,7 @@ function PantallaSolicitarQR({ idUsuario, idVehiculo }: QRAccesoProps) {
     );
   }
 
-  // ── Estado: idle → botón principal ──
+  // ── Estado: idle → selector de tipo + botón principal ──
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -222,18 +241,64 @@ function PantallaSolicitarQR({ idUsuario, idVehiculo }: QRAccesoProps) {
 
       <div className="text-center space-y-1">
         <h3 className="text-lg font-black" style={{ color: UCC.navy }}>Acceso al Parqueadero</h3>
-        <p className="text-sm font-medium text-gray-400 max-w-[220px] leading-relaxed">
-          Genera tu QR para ingresar. Se asigna el primer espacio libre disponible.
+        <p className="text-sm font-medium text-gray-400 max-w-[280px] leading-relaxed">
+          Selecciona tu tipo de vehículo y genera tu QR para ingresar.
         </p>
+      </div>
+
+      {/* Selector de tipo de vehículo */}
+      <div className="w-full max-w-xs space-y-2">
+        <label className="text-xs font-bold ml-1 uppercase tracking-widest block" style={{ color: UCC.navy }}>
+          Tipo de Vehículo *
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+          {TIPOS_VEHICULO.map((tipo) => {
+            const Icon = tipo.icon;
+            const isSelected = tipoSeleccionado === tipo.value;
+            return (
+              <motion.button
+                key={tipo.value}
+                type="button"
+                whileTap={{ scale: 0.96 }}
+                onClick={() => setTipoSeleccionado(tipo.value)}
+                className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all"
+                style={
+                  isSelected
+                    ? {
+                        borderColor: tipo.color,
+                        background: `${tipo.color}15`,
+                      }
+                    : {
+                        borderColor: '#e2e8f0',
+                        background: '#fff',
+                      }
+                }
+              >
+                <Icon
+                  size={24}
+                  style={{ color: isSelected ? tipo.color : '#94a3b8' }}
+                  strokeWidth={isSelected ? 2.5 : 2}
+                />
+                <span
+                  className="text-xs font-bold"
+                  style={{ color: isSelected ? tipo.color : '#94a3b8' }}
+                >
+                  {tipo.label}
+                </span>
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
 
       <motion.button
         whileTap={{ scale: 0.96 }}
-        onClick={() => generarQR(idUsuario, idVehiculo)}
-        className="w-full max-w-xs py-4 text-white font-black rounded-2xl flex items-center justify-center gap-2 text-base"
+        onClick={handleGenerarQR}
+        disabled={!tipoSeleccionado}
+        className="w-full max-w-xs py-4 text-white font-black rounded-2xl flex items-center justify-center gap-2 text-base transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         style={{
           background: `linear-gradient(135deg, ${UCC.green}, ${UCC.blue})`,
-          boxShadow: '0 8px 24px rgba(0,174,239,0.30)',
+          boxShadow: tipoSeleccionado ? '0 8px 24px rgba(0,174,239,0.30)' : 'none',
         }}
       >
         <QrCode size={20} />

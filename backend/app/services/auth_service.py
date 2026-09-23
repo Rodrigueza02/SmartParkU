@@ -12,8 +12,20 @@ class AuthService:
         self.db = db
         self.user_repo = UserRepository(db)
 
-    def register_student(self, nombre: str, correo: str, password: str, carnet_id: str = None) -> RegisterResponse:
-        """Registra un nuevo estudiante en el sistema."""
+    def register_student(
+        self, 
+        nombre: str, 
+        correo: str, 
+        password: str, 
+        carnet_id: str = None,
+        rol: str = "Estudiante",
+        tipo_vehiculo: str = None,
+        placa_vehiculo: str = None
+    ) -> RegisterResponse:
+        """
+        Registra un nuevo usuario en el sistema.
+        Opcionalmente crea un vehículo asociado si se proporcionan tipo y placa.
+        """
         # Verificar si el correo ya está registrado
         existing_user = self.user_repo.get_by_email(correo)
         if existing_user:
@@ -32,14 +44,14 @@ class AuthService:
                     detail="El carnet universitario ya está registrado."
                 )
         
-        # Crear nuevo usuario con rol Estudiante
+        # Crear nuevo usuario
         from app.models import Usuario
         hashed_password = get_password_hash(password)
         new_user = Usuario(
             nombre=nombre,
             correo=correo,
             password=hashed_password,
-            rol="Estudiante",
+            rol=rol,
             estado="Activo",
             carnet_id=carnet_id
         )
@@ -48,10 +60,25 @@ class AuthService:
         self.db.commit()
         self.db.refresh(new_user)
         
+        # Crear vehículo si se proporcionaron los datos
+        vehiculo_registrado = False
+        if tipo_vehiculo and placa_vehiculo:
+            from app.models import Vehiculo
+            nuevo_vehiculo = Vehiculo(
+                placa=placa_vehiculo,
+                tipo=tipo_vehiculo,
+                id_usuario=new_user.id_usuario
+            )
+            self.db.add(nuevo_vehiculo)
+            self.db.commit()
+            vehiculo_registrado = True
+        
         return RegisterResponse(
             mensaje="Cuenta creada exitosamente. Ya puedes iniciar sesión.",
             id_usuario=new_user.id_usuario,
-            correo=new_user.correo
+            correo=new_user.correo,
+            rol=new_user.rol,
+            vehiculo_registrado=vehiculo_registrado
         )
 
     def login(self, correo: str, password: str) -> TokenResponse:
